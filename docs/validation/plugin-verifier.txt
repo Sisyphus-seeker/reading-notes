@@ -1,0 +1,26 @@
+Reading Notes 0.1.0
+Plugin ID: io.github.sisyphusseeker.readingnotes
+Verifier: JetBrains IntelliJ Plugin Verifier 1.411
+Target IDE: PyCharm PY-253.33813.50 (2025.3.6.1)
+Date: 2026-11-14
+Mode: offline, installed IDE and bundled JBR
+
+Verdict: Compatible
+Plugin binary compatibility findings: none reported
+Plugin structure warnings: none reported
+Internal API usages: none reported
+Deprecated API usages: none reported
+Override-only/non-extendable API findings: none reported
+
+Verified distribution:
+ReadingNotes-0.1.0.zip
+SHA-256: cac9c2cd1a73d92bba4a42015b10ff3dab4ecda8af522dabb984a75d1bc67dff
+
+The verifier logged nonexistent module paths in the local IDE's layout
+metadata. Verification completed with the verdict above. This establishes
+compatibility with the available installed PY-253.33813.50 SDK; it is not
+a guarantee for every IDE product or every 253-series build.
+
+To reproduce, run verify-plugin.ps1 with the same installed IDE and the
+official verifier asset identified in docs/VERIFYING.md. Full local logs
+and reports are generated beneath build/verification and are not bundled.

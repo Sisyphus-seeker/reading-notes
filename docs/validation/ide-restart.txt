@@ -1,0 +1,5 @@
+PASS Notes restored after IDE restart
+PASS Chinese multiline content restored after IDE restart
+PASS Topics/groups restored after IDE restart
+PASS Layout and split proportion restored after IDE restart
+PASS Saved source anchor restored after IDE restart
