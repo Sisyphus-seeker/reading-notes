@@ -1,6 +1,6 @@
 # Marketplace submission materials
 
-GitHub publication and Marketplace approval are separate. This file provides the materials for the first Marketplace submission; it does not mean a listing has been submitted or approved.
+The existing listing is [Reading Notes](https://plugins.jetbrains.com/plugin/36128-reading-notes). This file provides materials for the 0.1.1 compatibility update. A candidate package or GitHub commit does not mean the update has been submitted to or approved by Marketplace.
 
 ## Listing fields
 
@@ -8,7 +8,7 @@ GitHub publication and Marketplace approval are separate. This file provides the
 | --- | --- |
 | Name | Reading Notes |
 | Plugin ID | `io.github.sisyphusseeker.readingnotes` |
-| Version | `0.1.0` |
+| Version | `0.1.1` |
 | Vendor | siseeker |
 | Contact email | olivia0v0666@gmail.com |
 | Vendor website / project home | https://github.com/Sisyphus-seeker/reading-notes |
@@ -16,8 +16,8 @@ GitHub publication and Marketplace approval are separate. This file provides the
 | Issue tracker | https://github.com/Sisyphus-seeker/reading-notes/issues |
 | License | MIT; https://github.com/Sisyphus-seeker/reading-notes/blob/main/LICENSE |
 | Privacy | https://github.com/Sisyphus-seeker/reading-notes/blob/main/docs/PRIVACY.md |
-| Tested IDE | PyCharm 2025.3.6.1, build 253.33813.50 on Windows |
-| Declared compatibility | IntelliJ Platform 253 through 253.* |
+| Validation | See [VALIDATION.md](VALIDATION.md) for exact tested builds and results |
+| Declared compatibility | IntelliJ Platform 253 through 263.* |
 | UI language | Simplified Chinese |
 
 Use tags relevant to code reading, notes and productivity if they are available in the upload form.
@@ -32,7 +32,7 @@ The note dialog can be resized, and the tool window can switch between stacked a
 
 Notes are stored locally in `.idea/reading-notes.xml`. The plugin does not upload notes or source code, collect telemetry, or require cloud accounts. The plugin interface is currently in Simplified Chinese.
 
-Open source under the MIT License. Version 0.1.0 targets IntelliJ Platform 253 and has been runtime-tested with PyCharm 2025.3.6.1 on Windows. It does not import other plugins' notebooks, include a recycle bin, or provide cloud sync.
+Open source under the MIT License. Version 0.1.1 targets IntelliJ Platform 253 through 263 (PyCharm 2025.3–2026.3). It does not import other plugins' notebooks, include a recycle bin, or provide cloud sync. See the repository's validation records for the exact tested builds.
 
 ## 中文介绍
 
@@ -52,11 +52,17 @@ The previews render actual plugin components with synthetic notes. They should b
 ## Steps requiring the account owner
 
 1. Log in to JetBrains Marketplace with your own account.
-2. Create or choose the vendor profile, confirm its contact details and any required identity/trader declarations.
-3. Review and accept the Marketplace Developer Agreement yourself.
-4. Choose **Upload plugin**, select the vendor, and upload the release ZIP together with these listing details.
+2. Open the existing Reading Notes listing in your vendor dashboard and choose its version/update upload action.
+3. Upload `ReadingNotes-0.1.1.zip` and the change notes below. Keep the existing plugin ID and vendor.
+4. Complete any new account declarations or agreements personally if Marketplace requests them.
 5. Monitor review status; technical questions and compatibility findings can be addressed in the source project.
 
-Do not upload the sandbox's instrumented test JAR. Use only `dist/ReadingNotes-0.1.0.zip` or its matching GitHub Release asset.
+Do not upload the sandbox's instrumented test JAR. Use only the verified `dist/ReadingNotes-0.1.1.zip` or its matching GitHub Release asset after release.
+
+## Update notes
+
+Compatibility update for IntelliJ Platform 263 (PyCharm 2026.3). Retains support for PyCharm 2025.3 and preserves the existing local notebook format. No note migration is required.
+
+兼容 PyCharm 2026.3，保留 2025.3 支持；沿用现有本地笔记格式，无需迁移笔记。
 
 Official references: [uploading a plugin](https://plugins.jetbrains.com/docs/marketplace/uploading-a-new-plugin.html), [approval guidelines](https://plugins.jetbrains.com/docs/marketplace/jetbrains-marketplace-approval-guidelines.html), [plugin logo](https://plugins.jetbrains.com/docs/intellij/plugin-icon-file.html).

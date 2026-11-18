@@ -12,7 +12,7 @@ Use [GitHub Issues](https://github.com/Sisyphus-seeker/reading-notes/issues) for
 - Model tests: `src/test/java`.
 - IDE integration tests: `src/ideTest/java` (not packaged in releases).
 
-Run `test-model.ps1` with JDK 21. On Windows, compile/package using `build.ps1 -IdeHome <PyCharm 2025.3 installation>`. See the README for sandbox integration checks and `docs/VERIFYING.md` for Plugin Verifier.
+Run `test-model.ps1` with JDK 21. On Windows, compile/package using `build.ps1 -IdeHome <PyCharm 2025.3 installation>`. Preserve the Platform 253 / Java 21 compilation baseline when testing newer IDEs. See the README for sandbox integration checks and `docs/VERIFYING.md` for the combined compatibility workflow.
 
 For UI changes, inspect both a narrow sidebar and a wide view. For persistence or anchor changes, run the smoke and restart checks. Describe the problem, final behavior and checks performed in your pull request.
 

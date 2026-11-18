@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1 — 2026-11-18
+
+- Extend the declared compatibility range to IntelliJ Platform 263 (PyCharm 2026.3), retaining the Platform 253 / Java 21 compilation baseline.
+- Isolate development projects, configuration, caches and plugins for each tested IDE build.
+- Add a combined compatibility workflow that checks binary APIs, IDE behavior and restart persistence using the same release ZIP.
+- Record the actual IDE build and Java runtime with test results, and require an explicit `Compatible` verifier verdict.
+
+The public plugin ID and `.idea/reading-notes.xml` data format are unchanged. See [validation records](docs/VALIDATION.md) for exact tested versions and remaining limits.
+
 ## 0.1.0 — 2026-11-14
 
 Initial open-source release of Reading Notes.

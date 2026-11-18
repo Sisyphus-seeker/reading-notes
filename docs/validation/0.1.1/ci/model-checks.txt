@@ -1,0 +1,4 @@
+PyCharm 2025.3.6.1 (Windows)	Compile, run model checks and verify binary compatibility	2026-11-18T15:28:47.6710477Z PASS: 24 notebook and anchor checks
+PyCharm 2026.1 (Windows)	Compile, run model checks and verify binary compatibility	2026-11-18T15:29:15.1864747Z PASS: 24 notebook and anchor checks
+PyCharm 2026.2 (Windows)	Compile, run model checks and verify binary compatibility	2026-11-18T15:30:57.9750378Z PASS: 24 notebook and anchor checks
+PyCharm 2026.3 (Windows)	Compile, run model checks and verify binary compatibility	2026-11-18T15:30:38.8079117Z PASS: 24 notebook and anchor checks

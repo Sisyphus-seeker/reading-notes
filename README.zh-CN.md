@@ -4,7 +4,7 @@
 
 独立开发的 PyCharm 插件，在代码行号旁显示笔记图标，按 **学习主题 → 分组 → 笔记** 组织阅读记录。
 
-首版支持 **PyCharm 2025.3.x / IntelliJ Platform 253**。使用本机 PyCharm **2025.3.6.1，构建号 253.33813.50** 编译和运行验证。
+当前版本面向 **PyCharm 2025.3–2026.3 / IntelliJ Platform 253–263**。仍以 2025.3 / Java 21 编译，保留旧版兼容性；具体测试构建及结果见验证记录。
 
 [查看界面预览和验证记录](docs/VALIDATION.md)
 
@@ -12,7 +12,7 @@
 
 1. 打开 PyCharm 的 **设置 → 插件**。
 2. 点击齿轮菜单，选择 **从磁盘安装插件 / Install Plugin from Disk**。
-3. 从 [GitHub Releases](https://github.com/Sisyphus-seeker/reading-notes/releases) 下载 `ReadingNotes-0.1.0.zip` 并选择它，不要解压。
+3. 从 [GitHub Releases](https://github.com/Sisyphus-seeker/reading-notes/releases) 下载已发布的 `ReadingNotes-<版本>.zip` 并选择它，不要解压；也可从 [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/36128-reading-notes) 安装已审核版本。
 4. 按 IDE 提示完成安装或重启。
 5. 从右侧工具栏，或 **视图 → 工具窗口 → Reading Notes** 打开笔记面板。
 
@@ -78,7 +78,7 @@
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -IdeHome 'C:\Path\To\PyCharm'
 ```
 
-也可设置 `PYCHARM_HOME` 后省略 `-IdeHome`。脚本会运行模型测试并生成 `dist/ReadingNotes-0.1.0.zip`。
+也可设置 `PYCHARM_HOME` 后省略 `-IdeHome`。脚本会运行模型测试并生成 `dist/ReadingNotes-0.1.1.zip`。编译 SDK 保持为 2025.3；测试新版 IDE 不需要升级日常开发环境。
 
 构建脚本只清理本工程 `build` 目录内的指定输出目录。JAR 和 ZIP 中的文件路径统一使用 `/`，兼容 IDE 的插件加载器。
 
@@ -95,7 +95,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\run-sandbox.ps1 -IdeHome '
 powershell -NoProfile -ExecutionPolicy Bypass -File .\run-sandbox.ps1 -IdeHome 'C:\Path\To\PyCharm' -CheckRestart
 ```
 
-运行前需退出上一次开发 IDE。测试路径为 `build/sandbox`；结果和界面渲染图位于 `build/sandbox/results`。
+运行前需退出该构建上一次开发 IDE。每个 IDE 构建独立使用 `build/sandboxes/PY-<构建号>` 下的配置、缓存、插件和示例项目；结果及渲染图位于其 `results` 子目录。
+
+测试新版时，`-IdeHome` 指向新版独立安装目录，另传 `-BuildIdeHome '旧版 2025.3 安装目录'`。可通过 `-PluginZip` 测试已经构建的安装包，避免各次检查重建不同的 ZIP。完整的二进制、IDE 功能和重启验证命令见 [VERIFYING.md](docs/VERIFYING.md)。
 
 模型测试覆盖层级关联、编辑和移动笔记、删除级联、快照隔离、数据往返、无效引用、搜索、定位上下文和歧义处理。
 
@@ -120,7 +122,7 @@ src/test/java/             无外部依赖的模型检查
 src/ideTest/java/          仅供开发沙箱使用的 IDE 集成检查
 ```
 
-接口核对依据：[JetBrains Tool Windows](https://plugins.jetbrains.com/docs/intellij/tool-windows.html)、[状态持久化](https://plugins.jetbrains.com/docs/intellij/persisting-state-of-components.html)及本机 253 SDK。首版未对其他 IDE 版本执行兼容性验证，因此安装包暂限定在 253 系列。
+接口核对依据：[JetBrains Tool Windows](https://plugins.jetbrains.com/docs/intellij/tool-windows.html)、[状态持久化](https://plugins.jetbrains.com/docs/intellij/persisting-state-of-components.html)和官方 SDK。兼容上限为 `263.*`；具体检查的构建与验证边界见 [VALIDATION.md](docs/VALIDATION.md)。
 
 ## 开源与联系
 

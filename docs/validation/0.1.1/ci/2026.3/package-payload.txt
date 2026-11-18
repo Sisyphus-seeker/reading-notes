@@ -1,0 +1,6 @@
+IDE build: PY-263.7307.206
+Verifier: 1.411
+Verdict: Compatible
+CI ZIP SHA256: 6bf194332d182a25e3bba070d198ad6453affb840db66cea71ae941a528be3fc
+Local ZIP SHA256: 8fa596a0097e79016c796710aad2f94b44658dc8e61b1b70aca2636d8a6fc712
+PASS all 40 JAR entry payloads match the local release candidate byte-for-byte.

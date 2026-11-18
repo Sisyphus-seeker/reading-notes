@@ -4,7 +4,7 @@ English · [简体中文](README.zh-CN.md)
 
 Add notes to code lines and organize your understanding by **topic → group → note**. Click the bookmark icon beside a line number to view or edit its notes, without changing your source files.
 
-Reading Notes is an independent, MIT-licensed plugin by **siseeker**, initially targeting **PyCharm 2025.3.x / IntelliJ Platform 253**. The plugin interface is currently in Simplified Chinese.
+Reading Notes is an independent, MIT-licensed plugin by **siseeker**, targeting **PyCharm 2025.3–2026.3 / IntelliJ Platform 253–263**. The plugin interface is currently in Simplified Chinese. See [validation records](docs/VALIDATION.md) for the exact builds checked.
 
 ## Features
 
@@ -21,7 +21,7 @@ Reading Notes is an independent, MIT-licensed plugin by **siseeker**, initially 
 
 ## Install
 
-1. Download `ReadingNotes-0.1.0.zip` from [GitHub Releases](https://github.com/Sisyphus-seeker/reading-notes/releases).
+1. Download the latest published `ReadingNotes-<version>.zip` from [GitHub Releases](https://github.com/Sisyphus-seeker/reading-notes/releases) or install from [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/36128-reading-notes).
 2. Open **Settings → Plugins → gear menu → Install Plugin from Disk**.
 3. Select the ZIP without extracting it, and follow the IDE's restart prompt if shown.
 4. Open **View → Tool Windows → Reading Notes**.
@@ -70,7 +70,7 @@ The supplied build uses the **JBR 21 compiler bundled with a local PyCharm 2025.
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -IdeHome 'C:\Path\To\PyCharm'
 ```
 
-Alternatively, set `PYCHARM_HOME`. The build runs the model tests and writes `dist/ReadingNotes-0.1.0.zip`. Build outputs, local IDE state and downloaded verification tools are ignored by Git.
+Alternatively, set `PYCHARM_HOME`. The build runs the model tests and writes `dist/ReadingNotes-0.1.1.zip`. Continue compiling against Platform 253 / Java 21 to preserve support for 2025.3; testing a newer IDE does not require raising this compilation baseline. Build outputs, local IDE state and downloaded verification tools are ignored by Git.
 
 The current build and sandbox scripts are Windows-specific. The plugin uses platform APIs, but macOS/Linux runtime behavior has not been validated.
 
@@ -88,9 +88,11 @@ Launch a development IDE with separate config, system, plugins and sample-projec
 powershell -NoProfile -ExecutionPolicy Bypass -File .\run-sandbox.ps1 -IdeHome 'C:\Path\To\PyCharm'
 ```
 
-For the IDE integration checks, use `-SmokeTest`, wait for that instance to exit, then run again with `-CheckRestart`. Results are written to `build/sandbox/results`. The smoke test resets only its dedicated sample notebook. Test activities are excluded from the distributed plugin.
+For the IDE integration checks, use `-SmokeTest`, wait for that instance to exit, then run again with `-CheckRestart`. Results are written to `build/sandboxes/PY-<build>/results`. Each IDE build has separate config, caches, plugins and sample notes. The smoke test resets only its dedicated sample notebook. Test activities are excluded from the distributed plugin.
 
-For standalone binary compatibility checks, see [the verification instructions](docs/VERIFYING.md). The supported build range remains `253` through `253.*`; a check against one IDE build does not establish compatibility with every build or product in that range.
+To run a newer IDE, pass its directory with `-IdeHome` and the 2025.3 compilation SDK with `-BuildIdeHome`. Use `-PluginZip` to test an existing release package without rebuilding it. Your everyday IDE and notes are not used by the sandbox.
+
+For standalone binary compatibility checks and the combined binary/runtime/restart workflow, see [the verification instructions](docs/VERIFYING.md). The declared range is `253` through `263.*`; checking selected builds does not establish compatibility with every patch or IDE product in that range.
 
 ## Contributing
 
