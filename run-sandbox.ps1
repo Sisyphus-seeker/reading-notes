@@ -125,7 +125,11 @@ $properties = @(
 if ($SmokeTest -or $CheckRestart) {
     # Official integration-test settings, scoped to this generated fixture and
     # this isolated IDE process. Normal sandbox launches keep the default prompts.
-    $properties += @('idea.trust.all.projects=true', 'ide.show.tips.on.startup.default.value=false')
+    $properties += @(
+        'idea.trust.all.projects=true'
+        'ide.show.tips.on.startup.default.value=false'
+        'jb.consents.confirmation.enabled=false'
+    )
 }
 $propertiesFile = Join-Path $sandbox 'idea.properties'
 [IO.File]::WriteAllLines($propertiesFile, $properties, $utf8)

@@ -67,14 +67,27 @@ jobs:
           if ((Get-FileHash build/tools/verifier-cli-1.411-all.jar -Algorithm SHA256).Hash -ne 'd6cc1c1f17761bb5efff187f98b63fb792c7ef2a2fb9202bb5dbea05ebc02bfa') { throw 'Verifier checksum mismatch' }
       - name: Verify binary compatibility, IDE behavior and restart persistence
         run: ./test-compatibility.ps1 -BuildIdeHome $env:BUILD_IDE_HOME -TargetIdeHome $env:TARGET_IDE_HOME
+      - name: Collect reports without live IDE sockets
+        if: always()
+        run: |
+          $evidence = 'build/compatibility-evidence'
+          New-Item -ItemType Directory -Path $evidence -Force | Out-Null
+          if (Test-Path build/verification) { Copy-Item -LiteralPath build/verification -Destination "$evidence/verification" -Recurse }
+          if (Test-Path build/sandboxes) {
+            foreach ($sandbox in Get-ChildItem build/sandboxes -Directory) {
+              $destination = Join-Path $evidence $sandbox.Name
+              New-Item -ItemType Directory -Path $destination -Force | Out-Null
+              $results = Join-Path $sandbox.FullName 'results'
+              if (Test-Path $results) { Get-ChildItem -LiteralPath $results -File | Copy-Item -Destination $destination }
+              $log = Join-Path $sandbox.FullName 'log/idea.log'
+              if (Test-Path $log) { Copy-Item -LiteralPath $log -Destination "$destination/idea.log" }
+            }
+          }
+          if (Test-Path dist) { Get-ChildItem dist -Filter '*.zip' -File | Copy-Item -Destination $evidence }
       - name: Save compatibility evidence and candidate package
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: compatibility-${{ matrix.version }}
-          path: |
-            build/verification/**
-            build/sandboxes/**/results/**
-            build/sandboxes/**/log/idea.log
-            dist/*.zip
+          path: build/compatibility-evidence/
           retention-days: 14
