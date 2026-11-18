@@ -1,5 +1,12 @@
-param([string]$IdeHome = $env:PYCHARM_HOME, [switch]$SmokeTest, [switch]$CheckRestart)
+param(
+    [string]$IdeHome = $env:PYCHARM_HOME,
+    [string]$BuildIdeHome = $env:PYCHARM_BUILD_HOME,
+    [string]$PluginZip,
+    [switch]$SmokeTest,
+    [switch]$CheckRestart
+)
 $ErrorActionPreference = 'Stop'
+if ($SmokeTest -and $CheckRestart) { throw 'Choose either -SmokeTest or -CheckRestart.' }
 if (-not $IdeHome) {
     $running = Get-Process -Name pycharm64 -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($running -and $running.Path) { $IdeHome = Split-Path (Split-Path $running.Path -Parent) -Parent }
@@ -7,8 +14,18 @@ if (-not $IdeHome) {
 if (-not $IdeHome) { throw 'Pass -IdeHome with your PyCharm installation directory.' }
 $sdk = (Resolve-Path -LiteralPath $IdeHome).Path
 $root = (Resolve-Path -LiteralPath $PSScriptRoot).Path
-$sandbox = Join-Path $root 'build\sandbox'
-$classes = Join-Path $root 'build\classes'
+$product = Get-Content -Raw -LiteralPath (Join-Path $sdk 'product-info.json') | ConvertFrom-Json
+if ($product.buildNumber -notmatch '^\d+\.\d+(\.\d+)*$') { throw 'Unexpected IDE build number.' }
+if (-not $BuildIdeHome) {
+    if ($product.buildNumber -notlike '253.*') {
+        throw 'Pass -BuildIdeHome with a PyCharm 2025.3 installation to preserve the Java 21 / Platform 253 compilation baseline.'
+    }
+    $BuildIdeHome = $sdk
+}
+$compilerSdk = (Resolve-Path -LiteralPath $BuildIdeHome).Path
+# Each tested IDE gets its own project, config, indexes, plugins and results.
+# A newer IDE must never upgrade the older IDE's sandbox state.
+$sandbox = Join-Path $root ("build\sandboxes\PY-" + $product.buildNumber)
 $plugin = Join-Path $sandbox 'plugins\ReadingNotes\lib'
 $results = Join-Path $sandbox 'results'
 $lockFile = Join-Path $sandbox 'config\.lock'
@@ -33,15 +50,30 @@ if ($SmokeTest -or $CheckRestart) {
         if (Test-Path -LiteralPath $resultFile) { Remove-Item -LiteralPath $resultFile -Force }
     }
 }
-& (Join-Path $root 'build.ps1') -IdeHome $sdk
 $jar = Join-Path $plugin 'reading-notes.jar'
-Copy-Item -LiteralPath (Join-Path $root 'build\package\ReadingNotes\lib\reading-notes.jar') -Destination $jar -Force
+if (-not $PluginZip) {
+    & (Join-Path $root 'build.ps1') -IdeHome $compilerSdk
+    [xml]$buildDescriptor = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $root 'src\main\resources\META-INF\plugin.xml')
+    $PluginZip = Join-Path $root "dist\ReadingNotes-$($buildDescriptor.'idea-plugin'.version).zip"
+}
+# Test an already built package unchanged across runtimes; instrument only its sandbox copy.
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$packageArchive = [IO.Compression.ZipFile]::OpenRead((Resolve-Path -LiteralPath $PluginZip).Path)
+try {
+    $pluginEntry = $packageArchive.GetEntry('ReadingNotes/lib/reading-notes.jar')
+    if (-not $pluginEntry) { throw 'The ZIP does not contain the Reading Notes plugin JAR.' }
+    [IO.Compression.ZipFileExtensions]::ExtractToFile($pluginEntry, $jar, $true)
+} finally { $packageArchive.Dispose() }
 if ($SmokeTest -or $CheckRestart) {
     $smokeClasses = Join-Path $sandbox 'smoke-classes'
     New-Item -ItemType Directory -Path $smokeClasses -Force | Out-Null
-    & (Join-Path $sdk 'jbr\bin\javac.exe') '-J-Duser.language=en' -encoding UTF-8 --release 21 -proc:none -classpath "$jar;$sdk\lib\*" -d $smokeClasses (Join-Path $root 'src\ideTest\java\dev\readingnotes\IdeSmokeActivity.java')
+    & (Join-Path $compilerSdk 'jbr\bin\javac.exe') '-J-Duser.language=en' -encoding UTF-8 --release 21 -proc:none -classpath "$jar;$compilerSdk\lib\*" -d $smokeClasses (Join-Path $root 'src\ideTest\java\dev\readingnotes\IdeSmokeActivity.java')
     if ($LASTEXITCODE -ne 0) { throw 'IDE smoke test compilation failed.' }
-    [xml]$descriptor = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $classes 'META-INF\plugin.xml')
+    $sourceArchive = [IO.Compression.ZipFile]::OpenRead($jar)
+    try {
+        $reader = New-Object IO.StreamReader($sourceArchive.GetEntry('META-INF/plugin.xml').Open())
+        try { [xml]$descriptor = $reader.ReadToEnd() } finally { $reader.Dispose() }
+    } finally { $sourceArchive.Dispose() }
     $activity = $descriptor.CreateElement('postStartupActivity')
     $activity.SetAttribute('implementation', 'dev.readingnotes.IdeSmokeActivity')
     $descriptor.'idea-plugin'.extensions.AppendChild($activity) | Out-Null
@@ -95,7 +127,8 @@ $propertiesFile = Join-Path $sandbox 'idea.properties'
 $oldProperties = $env:PYCHARM_PROPERTIES
 try {
     $env:PYCHARM_PROPERTIES = $propertiesFile
-    Start-Process -FilePath (Join-Path $sdk 'bin\pycharm64.exe') -ArgumentList ('"' + (Join-Path $sandbox 'reading-notes-sandbox') + '"') -WindowStyle Hidden
+    $instance = Start-Process -FilePath (Join-Path $sdk 'bin\pycharm64.exe') -ArgumentList ('"' + (Join-Path $sandbox 'reading-notes-sandbox') + '"') -WindowStyle Hidden -PassThru
 } finally { $env:PYCHARM_PROPERTIES = $oldProperties }
+Write-Host "IDE: $($product.version), build $($product.buildNumber); PID: $($instance.Id)"
 Write-Host "Sandbox: $sandbox"
 Write-Host "Results: $results"

@@ -1,6 +1,7 @@
 package dev.readingnotes;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.*;
@@ -37,6 +38,12 @@ public final class IdeSmokeActivity implements StartupActivity.DumbAware {
         if (!Boolean.getBoolean("reading.notes.smoke")) return;
         this.project = project;
         results = Path.of(System.getProperty("reading.notes.results"));
+        try {
+            Files.writeString(results.resolve("environment.txt"),
+                "IDE build: " + ApplicationInfo.getInstance().getBuild().asString() + "\n" +
+                "Java: " + System.getProperty("java.runtime.version") + "\n" +
+                "OS: " + System.getProperty("os.name") + " " + System.getProperty("os.arch") + "\n");
+        } catch (Exception failure) { throw new IllegalStateException("Cannot record test environment", failure); }
         later(Boolean.getBoolean("reading.notes.restart") ? this::checkRestart : this::exercise);
     }
 

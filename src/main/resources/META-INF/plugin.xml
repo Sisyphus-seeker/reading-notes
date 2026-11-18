@@ -1,7 +1,7 @@
 <idea-plugin url="https://github.com/Sisyphus-seeker/reading-notes">
     <id>io.github.sisyphusseeker.readingnotes</id>
     <name>Reading Notes</name>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
     <vendor url="https://github.com/Sisyphus-seeker/reading-notes" email="olivia0v0666@gmail.com">siseeker</vendor>
     <description><![CDATA[
         <p>Add notes to code lines and organize them by learning topic and group.</p>
@@ -11,11 +11,11 @@
         <p>Open source under the MIT License. Source and issue tracker: <a href="https://github.com/Sisyphus-seeker/reading-notes">GitHub</a>.</p>
     ]]></description>
     <change-notes><![CDATA[
-        <p>0.1.0 — Initial open-source release.</p>
-        <ul><li>Code-line notes with clickable gutter icons.</li><li>Learning topics, groups, search and source navigation.</li><li>Resizable dialogs and adjustable split layouts.</li><li>Local persistence and source-context anchor recovery.</li></ul>
-        <p>首个开源版本：行笔记、主题分组、搜索跳转、可缩放窗口、布局记忆与行锚点恢复。</p>
+        <p>0.1.1 — Compatibility update for IntelliJ Platform 263 (2026.3).</p>
+        <p>Retains support for PyCharm 2025.3 and the existing local notebook format.</p>
+        <p>兼容 2026.3 平台，保留对 PyCharm 2025.3 的支持和现有笔记数据格式。</p>
     ]]></change-notes>
-    <idea-version since-build="253" until-build="253.*"/>
+    <idea-version since-build="253" until-build="263.*"/>
     <depends>com.intellij.modules.platform</depends>
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="Reading Notes" anchor="right" factoryClass="dev.readingnotes.NotesToolWindowFactory" icon="/icons/toolWindow.svg"/>

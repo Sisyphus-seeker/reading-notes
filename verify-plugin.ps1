@@ -30,7 +30,11 @@ $verdicts = @(Get-ChildItem -LiteralPath $reportRoot -Recurse -File -Filter 'ver
 if ($verdicts.Count -eq 0) { throw "No verification verdict was generated. The descriptor or IDE may be invalid. See $log" }
 $blockingNames = @('invalid-plugin.txt', 'compatibility-problems.txt', 'compatibility-warnings.txt', 'internal-api-usages.txt', 'deprecated-usages.txt', 'override-only-usages.txt', 'non-extendable-api-usages.txt', 'plugin-structure-warnings.txt')
 $findings = @(Get-ChildItem -LiteralPath $reportRoot -Recurse -File | Where-Object { $_.Name -in $blockingNames -and $_.Length -gt 0 })
-foreach ($verdict in $verdicts) { Write-Host (Get-Content -Raw -Encoding UTF8 -LiteralPath $verdict.FullName).Trim() }
+foreach ($verdict in $verdicts) {
+    $text = (Get-Content -Raw -Encoding UTF8 -LiteralPath $verdict.FullName).Trim()
+    Write-Host $text
+    if (($text -split '\r?\n')[0].Trim() -ne 'Compatible') { throw "Verifier did not return Compatible. See $log" }
+}
 if ($findings.Count -gt 0) {
     foreach ($finding in $findings) { Write-Host "$($finding.Name):"; Write-Host (Get-Content -Raw -Encoding UTF8 -LiteralPath $finding.FullName) }
     throw "Release verification found blocking API or structure findings. Reports: $reportRoot"

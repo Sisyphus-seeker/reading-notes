@@ -1,0 +1,80 @@
+name: IDE compatibility
+
+on:
+  push:
+    branches: [codex/compat-263]
+  pull_request:
+    paths:
+      - 'src/**'
+      - '*.ps1'
+      - '.github/workflows/ide-compatibility.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    name: PyCharm ${{ matrix.version }} (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        version: ['2025.3.6.1', '2026.1', '2026.2', '2026.3']
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download official portable IDEs and verifier
+        env:
+          TARGET_VERSION: ${{ matrix.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $sdkRoot = Join-Path $env:RUNNER_TEMP 'reading-notes-ides'
+          New-Item -ItemType Directory -Path $sdkRoot -Force | Out-Null
+          foreach ($version in @('2025.3.6.1', $env:TARGET_VERSION) | Select-Object -Unique) {
+            $response = Invoke-RestMethod "https://data.services.jetbrains.com/products/releases?code=PY&version=$version&type=release"
+            $release = @($response.PSObject.Properties.Value | ForEach-Object { $_ }) | Where-Object { $_.version -eq $version } | Select-Object -First 1
+            if (-not $release) { throw "Official release not found: $version" }
+            $download = $release.downloads.windowsZip
+            $archive = Join-Path $sdkRoot "$version.zip"
+            & curl.exe -fL --retry 3 --retry-all-errors -o $archive $download.link
+            if ($LASTEXITCODE -ne 0) { throw "IDE download failed: $version" }
+            $checksum = Invoke-RestMethod $download.checksumLink
+            $expected = ($checksum -split '\s+')[0]
+            if ((Get-FileHash $archive -Algorithm SHA256).Hash -ne $expected) { throw "IDE checksum mismatch: $version" }
+            $destination = Join-Path $sdkRoot $version
+            New-Item -ItemType Directory -Path $destination -Force | Out-Null
+            & tar.exe -xf $archive -C $destination
+            if ($LASTEXITCODE -ne 0) { throw "IDE extraction failed: $version" }
+            $info = Get-ChildItem $destination -Filter product-info.json -Recurse -File | Select-Object -First 1
+            if (-not $info) { throw 'Extracted IDE has no product-info.json' }
+            $ideHome = $info.DirectoryName
+            $product = Get-Content -Raw $info.FullName | ConvertFrom-Json
+            if ($product.buildNumber -ne $release.build -or $product.productCode -ne 'PY') { throw 'Unexpected IDE product/build' }
+            if ($version -eq '2025.3.6.1') { "BUILD_IDE_HOME=$ideHome" >> $env:GITHUB_ENV }
+            if ($version -eq $env:TARGET_VERSION) { "TARGET_IDE_HOME=$ideHome" >> $env:GITHUB_ENV }
+            Remove-Item -LiteralPath $archive -Force
+          }
+          New-Item -ItemType Directory -Path build/tools -Force | Out-Null
+          & curl.exe -fL --retry 3 --retry-all-errors -o build/tools/verifier-cli-1.411-all.jar https://github.com/JetBrains/intellij-plugin-verifier/releases/download/1.411/verifier-cli-1.411-all.jar
+          if ($LASTEXITCODE -ne 0) { throw 'Verifier download failed' }
+          if ((Get-FileHash build/tools/verifier-cli-1.411-all.jar -Algorithm SHA256).Hash -ne 'd6cc1c1f17761bb5efff187f98b63fb792c7ef2a2fb9202bb5dbea05ebc02bfa') { throw 'Verifier checksum mismatch' }
+      - name: Verify binary compatibility, IDE behavior and restart persistence
+        run: ./test-compatibility.ps1 -BuildIdeHome $env:BUILD_IDE_HOME -TargetIdeHome $env:TARGET_IDE_HOME
+      - name: Save compatibility evidence and candidate package
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: compatibility-${{ matrix.version }}
+          path: |
+            build/verification/**
+            build/sandboxes/**/results/**
+            build/sandboxes/**/log/idea.log
+            dist/*.zip
+          retention-days: 14
