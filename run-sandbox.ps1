@@ -122,6 +122,11 @@ $properties = @(
     "reading.notes.restart=$($CheckRestart.IsPresent.ToString().ToLowerInvariant())"
     "reading.notes.results=$($results.Replace('\','/'))"
 )
+if ($SmokeTest -or $CheckRestart) {
+    # Official integration-test settings, scoped to this generated fixture and
+    # this isolated IDE process. Normal sandbox launches keep the default prompts.
+    $properties += @('idea.trust.all.projects=true', 'ide.show.tips.on.startup.default.value=false')
+}
 $propertiesFile = Join-Path $sandbox 'idea.properties'
 [IO.File]::WriteAllLines($propertiesFile, $properties, $utf8)
 $oldProperties = $env:PYCHARM_PROPERTIES
