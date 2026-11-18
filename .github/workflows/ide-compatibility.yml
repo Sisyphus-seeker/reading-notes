@@ -1,4 +1,4 @@
-name: IDE compatibility
+name: IDE binary compatibility
 
 on:
   push:
@@ -65,8 +65,10 @@ jobs:
           & curl.exe -fL --retry 3 --retry-all-errors -o build/tools/verifier-cli-1.411-all.jar https://github.com/JetBrains/intellij-plugin-verifier/releases/download/1.411/verifier-cli-1.411-all.jar
           if ($LASTEXITCODE -ne 0) { throw 'Verifier download failed' }
           if ((Get-FileHash build/tools/verifier-cli-1.411-all.jar -Algorithm SHA256).Hash -ne 'd6cc1c1f17761bb5efff187f98b63fb792c7ef2a2fb9202bb5dbea05ebc02bfa') { throw 'Verifier checksum mismatch' }
-      - name: Verify binary compatibility, IDE behavior and restart persistence
-        run: ./test-compatibility.ps1 -BuildIdeHome $env:BUILD_IDE_HOME -TargetIdeHome $env:TARGET_IDE_HOME
+      - name: Compile, run model checks and verify binary compatibility
+        run: |
+          ./build.ps1 -IdeHome $env:BUILD_IDE_HOME
+          ./verify-plugin.ps1 -IdeHome $env:TARGET_IDE_HOME
       - name: Collect reports without live IDE sockets
         if: always()
         run: |

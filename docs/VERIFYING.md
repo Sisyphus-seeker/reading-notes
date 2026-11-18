@@ -23,4 +23,16 @@ The wrapper uses the installed IDE and its JBR in offline mode, and writes a fre
 
 Read the generated `verification-verdict.txt` and the full `verifier.log`. SDK layout warnings in the log should be examined separately from the plugin findings; record any limitations in the validation notes.
 
-The current declared range is Platform `253` through `253.*`. A successful check against one local build establishes binary compatibility with that build only. Before claiming support for additional IDE products or versions, verify and runtime-test those targets as well.
+The declared range is Platform `253` through `263.*`. A successful check against selected builds does not cover every patch or IDE product in that range.
+
+## Check the same package in old and new IDEs
+
+Download a portable Windows IDE from JetBrains, check its official SHA-256 and extract it to a separate directory. There is no need to replace your everyday PyCharm installation. Keep the compilation SDK at 2025.3 / Java 21, even when the runtime under test uses Java 25.
+
+```powershell
+.\test-compatibility.ps1 -BuildIdeHome 'C:\SDKs\PyCharm2025.3' -TargetIdeHome @('C:\SDKs\PyCharm2025.3', 'C:\SDKs\PyCharm2026.3')
+```
+
+This builds once, then runs Plugin Verifier, 19 IDE integration checks and 5 restart checks for each target. Every IDE build gets its own sandbox under `build/sandboxes/PY-<build>`. The release ZIP's hash is checked throughout; only sandbox copies receive the test activity. Results include the actual IDE build and Java runtime in `results/environment.txt`.
+
+The `IDE binary compatibility` GitHub workflow compiles against 2025.3, runs the model checks and executes Plugin Verifier on selected 2025.3, 2026.1, 2026.2 and 2026.3 Windows releases. It downloads official IDEs, checks their hashes and retains verifier reports and the candidate ZIP as temporary workflow artifacts. Runtime and restart checks use the local isolated IDE workflow above: a fresh hosted Windows desktop can stop at IDE licensing/onboarding before opening a project, so CI does not claim to validate desktop behavior. Inspect failures before publishing; workflow configuration alone is not evidence of compatibility.
