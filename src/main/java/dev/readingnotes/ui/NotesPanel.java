@@ -1,5 +1,6 @@
 package dev.readingnotes.ui;
 
+import static dev.readingnotes.model.I18n.text;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -12,6 +13,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import dev.readingnotes.*;
 import dev.readingnotes.model.Notebook;
+import dev.readingnotes.model.I18n;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -37,7 +39,9 @@ public final class NotesPanel extends JPanel implements Disposable {
     private final JBSplitter splitter;
     private final JPanel details = new JPanel(new BorderLayout());
     private final Map<String, DefaultMutableTreeNode> nodes = new HashMap<>();
+    private final List<Runnable> translations = new ArrayList<>();
     private boolean rebuilding;
+    private boolean disposed;
 
     public NotesPanel(Project project) {
         super(new BorderLayout()); this.project = project; store = NotebookService.get(project);
@@ -51,6 +55,14 @@ public final class NotesPanel extends JPanel implements Disposable {
             if (SwingUtilities.isEventDispatchThread()) rebuild(false);
             else SwingUtilities.invokeLater(() -> { if (!project.isDisposed()) rebuild(false); });
         });
+        project.getMessageBus().connect(this).subscribe(LanguageSettings.CHANGED, () -> {
+            Runnable update = () -> {
+                if (disposed || project.isDisposed()) return;
+                translations.forEach(Runnable::run);
+                rebuild(false);
+            };
+            if (SwingUtilities.isEventDispatchThread()) update.run(); else SwingUtilities.invokeLater(update);
+        });
         rebuild(true);
     }
 
@@ -59,11 +71,29 @@ public final class NotesPanel extends JPanel implements Disposable {
         JPanel top = new JPanel(new BorderLayout(0, JBUI.scale(10)));
         top.setBorder(JBUI.Borders.empty(12, 12, 6, 12));
         JPanel heading = new JPanel(new BorderLayout());
-        JBLabel label = new JBLabel("学习笔记"); label.setFont(label.getFont().deriveFont(Font.BOLD, label.getFont().getSize() + 2f));
-        heading.add(label, BorderLayout.WEST); count.setForeground(UIUtil.getContextHelpForeground()); heading.add(count, BorderLayout.EAST);
+        JBLabel label = new JBLabel(text("学习笔记")); label.setFont(label.getFont().deriveFont(Font.BOLD, label.getFont().getSize() + 2f));
+        heading.add(label, BorderLayout.CENTER); count.setForeground(UIUtil.getContextHelpForeground()); heading.add(count, BorderLayout.SOUTH);
+        JButton language = new JButton("中文 / EN");
+        language.addActionListener(e -> {
+            JPopupMenu menu = new JPopupMenu();
+            ButtonGroup choices = new ButtonGroup();
+            for (I18n.Language value : I18n.Language.values()) {
+                JRadioButtonMenuItem item = new JRadioButtonMenuItem(value == I18n.Language.CHINESE ? "简体中文" : "English", LanguageSettings.get().language() == value);
+                item.addActionListener(event -> LanguageSettings.get().setLanguage(value));
+                choices.add(item); menu.add(item);
+            }
+            menu.show(language, 0, language.getHeight());
+        });
+        heading.add(language, BorderLayout.EAST);
+        translate(() -> {
+            label.setText(text("学习笔记"));
+            language.setToolTipText(text("界面语言"));
+            language.getAccessibleContext().setAccessibleName(text("界面语言"));
+            search.getEmptyText().setText(text("搜索标题、正文、文件、主题…"));
+            search.getAccessibleContext().setAccessibleName(text("搜索笔记"));
+            tree.getEmptyText().setText(text("没有匹配的笔记"));
+        });
         top.add(heading, BorderLayout.NORTH);
-        search.getEmptyText().setText("搜索标题、正文、文件、主题…");
-        search.getAccessibleContext().setAccessibleName("搜索笔记");
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override public void insertUpdate(DocumentEvent e) { rebuild(true); }
             @Override public void removeUpdate(DocumentEvent e) { rebuild(true); }
@@ -72,23 +102,23 @@ public final class NotesPanel extends JPanel implements Disposable {
         top.add(search, BorderLayout.CENTER);
 
         JToolBar toolbar = toolbar();
-        toolbar.add(button("新建行笔记（Ctrl+Alt+Shift+N）", AllIcons.General.Add, this::addNote));
-        JButton manage = button("管理学习主题与分组", AllIcons.Nodes.Folder, () -> {});
+        toolbar.add(navigationButton("新建行笔记（Ctrl+Alt+Shift+N）", AllIcons.General.Add, this::addNote));
+        JButton manage = navigationButton("管理学习主题与分组", AllIcons.Nodes.Folder, () -> {});
         manage.addActionListener(e -> {
             JPopupMenu menu = new JPopupMenu();
-            item(menu, "新建学习主题", this::addTopic); item(menu, "新建分组", this::addGroup);
-            menu.addSeparator(); item(menu, "重命名所选主题 / 分组", this::rename); item(menu, "删除所选项…", this::deleteSelection);
+            item(menu, text("新建学习主题"), this::addTopic); item(menu, text("新建分组"), this::addGroup);
+            menu.addSeparator(); item(menu, text("重命名所选主题 / 分组"), this::rename); item(menu, text("删除所选项…"), this::deleteSelection);
             menu.show(manage, 0, manage.getHeight());
         });
         toolbar.add(manage);
-        toolbar.add(button("展开全部", AllIcons.Actions.Expandall, () -> expandAll(true)));
-        toolbar.add(button("折叠全部", AllIcons.Actions.Collapseall, () -> expandAll(false)));
+        toolbar.add(navigationButton("展开全部", AllIcons.Actions.Expandall, () -> expandAll(true)));
+        toolbar.add(navigationButton("折叠全部", AllIcons.Actions.Collapseall, () -> expandAll(false)));
         toolbar.addSeparator();
-        toolbar.add(button("切换上下 / 左右布局", AllIcons.Actions.SplitHorizontally, () -> {
+        toolbar.add(navigationButton("切换上下 / 左右布局", AllIcons.Actions.SplitHorizontally, () -> {
             splitter.setOrientation(!splitter.getOrientation());
             store.book().layout(!splitter.getOrientation(), splitter.getProportion());
         }));
-        JButton sharing = button("分享笔记：导入 / 导出", AllIcons.Actions.MenuSaveall, () -> {});
+        JButton sharing = navigationButton("分享笔记：导入 / 导出", AllIcons.Actions.MenuSaveall, () -> {});
         sharing.addActionListener(e -> ShareActions.menu(project, sharing, selected()));
         toolbar.add(sharing);
         top.add(toolbar, BorderLayout.SOUTH);
@@ -109,7 +139,7 @@ public final class NotesPanel extends JPanel implements Disposable {
                     setIcon(note.detached ? AllIcons.General.Warning : NotesIcons.NOTE); append(note.title);
                     String file = note.filePath.substring(note.filePath.lastIndexOf('/') + 1);
                     append("  " + file + ":" + note.line, SimpleTextAttributes.GRAYED_ATTRIBUTES);
-                    if (note.detached) append("  位置待确认", SimpleTextAttributes.ERROR_ATTRIBUTES);
+                    if (note.detached) append(text("  位置待确认"), SimpleTextAttributes.ERROR_ATTRIBUTES);
                 }
             }
         });
@@ -125,7 +155,6 @@ public final class NotesPanel extends JPanel implements Disposable {
         tree.getActionMap().put("readingNotes.open", new AbstractAction() {
             @Override public void actionPerformed(ActionEvent e) { if (selected() instanceof Notebook.Note n) NotesUi.edit(project, n.id); }
         });
-        tree.getEmptyText().setText("没有匹配的笔记");
         JBScrollPane scrolling = new JBScrollPane(tree); scrolling.setBorder(JBUI.Borders.empty());
         scrolling.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         area.add(scrolling, BorderLayout.CENTER);
@@ -159,7 +188,7 @@ public final class NotesPanel extends JPanel implements Disposable {
                 if (query.isEmpty() || topicMatch || topicNode.getChildCount() > 0) { root.add(topicNode); nodes.put(topic.id, topicNode); }
             }
             tree.setModel(new DefaultTreeModel(root));
-            count.setText(query.isEmpty() ? data.notes.size() + " 条笔记" : matches + " / " + data.notes.size());
+            count.setText(query.isEmpty() ? text("{0} 条笔记", data.notes.size()) : matches + " / " + data.notes.size());
             for (Map.Entry<String, DefaultMutableTreeNode> entry : nodes.entrySet())
                 if (expand || expanded.contains(entry.getKey())) tree.expandPath(new TreePath(entry.getValue().getPath()));
             DefaultMutableTreeNode restore = nodes.get(selectedId);
@@ -175,12 +204,12 @@ public final class NotesPanel extends JPanel implements Disposable {
         else {
             JPanel empty = new JPanel(new BorderLayout(JBUI.scale(8), JBUI.scale(12)));
             empty.setBorder(JBUI.Borders.empty(18));
-            String title = selected instanceof Notebook.Topic t ? t.name : selected instanceof Notebook.Group g ? g.name : "把理解留在代码旁";
+            String title = selected instanceof Notebook.Topic t ? t.name : selected instanceof Notebook.Group g ? g.name : text("把理解留在代码旁");
             JBLabel heading = new JBLabel(title); heading.setFont(heading.getFont().deriveFont(Font.BOLD, heading.getFont().getSize() + 2f));
             empty.add(heading, BorderLayout.NORTH);
-            JBTextArea help = text("在代码中按 Ctrl+Alt+Shift+N，\n或右键选择「新建行笔记」。\n\n点击行号旁的笔记图标查看或编辑；\n双击列表中的笔记跳转到代码。\n\n可拖动中间分隔线调整区域大小；\n工具窗口菜单可切换浮动窗口。", false);
+            JBTextArea help = textArea(text("在代码中按 Ctrl+Alt+Shift+N，\n或右键选择「新建行笔记」。\n\n点击行号旁的笔记图标查看或编辑；\n双击列表中的笔记跳转到代码。\n\n可拖动中间分隔线调整区域大小；\n工具窗口菜单可切换浮动窗口。"), false);
             help.setForeground(UIUtil.getContextHelpForeground()); empty.add(help, BorderLayout.CENTER);
-            JButton add = new JButton("在当前行创建笔记"); add.addActionListener(e -> addNote());
+            JButton add = new JButton(text("在当前行创建笔记")); add.addActionListener(e -> addNote());
             empty.add(add, BorderLayout.SOUTH); details.add(empty, BorderLayout.CENTER);
         }
         details.revalidate(); details.repaint();
@@ -189,34 +218,34 @@ public final class NotesPanel extends JPanel implements Disposable {
     private void renderNote(Notebook.Note note) {
         JPanel view = new JPanel(new BorderLayout(0, JBUI.scale(10))); view.setBorder(JBUI.Borders.empty(12));
         JPanel heading = new JPanel(new BorderLayout(0, JBUI.scale(6)));
-        JBTextArea title = text(note.title, false); title.setFont(title.getFont().deriveFont(Font.BOLD, title.getFont().getSize() + 2f));
+        JBTextArea title = textArea(note.title, false); title.setFont(title.getFont().deriveFont(Font.BOLD, title.getFont().getSize() + 2f));
         heading.add(title, BorderLayout.NORTH);
         Notebook.Data data = store.book().snapshot();
         Notebook.Group group = data.groups.stream().filter(g -> g.id.equals(note.groupId)).findFirst().orElse(null);
         String topic = group == null ? "" : data.topics.stream().filter(t -> t.id.equals(group.topicId)).map(t -> t.name).findFirst().orElse("");
-        JBTextArea breadcrumb = text(topic + "  /  " + (group == null ? "" : group.name), false);
+        JBTextArea breadcrumb = textArea(topic + "  /  " + (group == null ? "" : group.name), false);
         breadcrumb.setForeground(UIUtil.getContextHelpForeground()); heading.add(breadcrumb, BorderLayout.CENTER);
         JToolBar commands = toolbar();
-        commands.add(button("编辑笔记 / 移动分组", AllIcons.Actions.Edit, () -> NotesUi.edit(project, note.id)));
-        commands.add(button("跳转代码", AllIcons.Actions.Forward, () -> NotesUi.navigate(project, note.id)));
-        commands.add(button("绑定到当前行", AllIcons.General.Locate, () -> NotesUi.rebind(project, note.id)));
-        commands.add(button("删除笔记…", AllIcons.General.Remove, this::deleteSelection));
+        commands.add(button(text("编辑笔记 / 移动分组"), AllIcons.Actions.Edit, () -> NotesUi.edit(project, note.id)));
+        commands.add(button(text("跳转代码"), AllIcons.Actions.Forward, () -> NotesUi.navigate(project, note.id)));
+        commands.add(button(text("绑定到当前行"), AllIcons.General.Locate, () -> NotesUi.rebind(project, note.id)));
+        commands.add(button(text("删除笔记…"), AllIcons.General.Remove, this::deleteSelection));
         heading.add(commands, BorderLayout.SOUTH);
         view.add(heading, BorderLayout.NORTH);
 
-        JBTextArea content = text(note.text.isBlank() ? "暂无正文，点击编辑补充你的理解。" : note.text, true);
+        JBTextArea content = textArea(note.text.isBlank() ? text("暂无正文，点击编辑补充你的理解。") : note.text, true);
         content.setMargin(JBUI.insets(10));
         JBScrollPane scroll = new JBScrollPane(content); view.add(scroll, BorderLayout.CENTER);
         JPanel footer = new JPanel(new BorderLayout(0, JBUI.scale(5)));
-        String status = note.detached ? "位置待确认 · 请绑定到当前行" : NoteLocations.resolve(project, note.filePath) == null ? "文件不可用 · 可能已删除或切换分支" : "已绑定代码";
-        JBTextArea location = text(note.filePath + " : " + note.line + "\n" + status, false);
+        String status = note.detached ? text("位置待确认 · 请绑定到当前行") : NoteLocations.resolve(project, note.filePath) == null ? text("文件不可用 · 可能已删除或切换分支") : text("已绑定代码");
+        JBTextArea location = textArea(note.filePath + " : " + note.line + "\n" + status, false);
         location.setForeground(note.detached ? UIUtil.getErrorForeground() : UIUtil.getContextHelpForeground()); footer.add(location, BorderLayout.NORTH);
         String date = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(note.updatedAt));
-        JBLabel updated = new JBLabel("更新于 " + date); updated.setForeground(UIUtil.getContextHelpForeground()); footer.add(updated, BorderLayout.SOUTH);
+        JBLabel updated = new JBLabel(text("更新于 {0}", date)); updated.setForeground(UIUtil.getContextHelpForeground()); footer.add(updated, BorderLayout.SOUTH);
         view.add(footer, BorderLayout.SOUTH); details.add(view, BorderLayout.CENTER);
     }
 
-    private static JBTextArea text(String value, boolean selectable) {
+    private static JBTextArea textArea(String value, boolean selectable) {
         JBTextArea area = new JBTextArea(value); area.setEditable(false); area.setFocusable(selectable);
         area.setLineWrap(true); area.setWrapStyleWord(true); area.setOpaque(false);
         area.setMinimumSize(JBUI.size(0, 0)); return area;
@@ -228,17 +257,17 @@ public final class NotesPanel extends JPanel implements Disposable {
         if (path != null) tree.setSelectionPath(path);
         JPopupMenu menu = new JPopupMenu();
         if (selected() instanceof Notebook.Note note) {
-            item(menu, "查看 / 编辑", () -> NotesUi.edit(project, note.id));
-            item(menu, "跳转代码", () -> NotesUi.navigate(project, note.id));
-            item(menu, "绑定到当前行…", () -> NotesUi.rebind(project, note.id));
+            item(menu, text("查看 / 编辑"), () -> NotesUi.edit(project, note.id));
+            item(menu, text("跳转代码"), () -> NotesUi.navigate(project, note.id));
+            item(menu, text("绑定到当前行…"), () -> NotesUi.rebind(project, note.id));
             menu.addSeparator();
         } else {
-            item(menu, "新建学习主题", this::addTopic); item(menu, "新建分组", this::addGroup);
-            item(menu, "在当前行新建笔记", this::addNote); menu.addSeparator();
-            item(menu, "重命名…", this::rename);
+            item(menu, text("新建学习主题"), this::addTopic); item(menu, text("新建分组"), this::addGroup);
+            item(menu, text("在当前行新建笔记"), this::addNote); menu.addSeparator();
+            item(menu, text("重命名…"), this::rename);
         }
-        item(menu, "导出所选项…", () -> ShareActions.export(project, tree, selected()));
-        item(menu, "删除…", this::deleteSelection); menu.show(tree, event.getX(), event.getY());
+        item(menu, text("导出所选项…"), () -> ShareActions.export(project, tree, selected()));
+        item(menu, text("删除…"), this::deleteSelection); menu.show(tree, event.getX(), event.getY());
     }
 
     private static void item(JPopupMenu menu, String title, Runnable command) {
@@ -255,18 +284,18 @@ public final class NotesPanel extends JPanel implements Disposable {
     }
 
     private void addTopic() {
-        String name = Messages.showInputDialog(project, "学习主题名称，例如：登录流程", "新建学习主题", null);
+        String name = Messages.showInputDialog(project, text("学习主题名称，例如：登录流程"), text("新建学习主题"), null);
         if (name == null) return;
         change(() -> {
             Notebook.Topic topic = store.book().addTopic(name);
-            store.book().addGroup(topic.id, "默认分组"); return topic.id;
+            store.book().addGroup(topic.id, text("默认分组")); return topic.id;
         });
     }
 
     private void addGroup() {
         String topicId = selectedTopic();
-        if (topicId == null) { Messages.showInfoMessage(project, "请先选择一个学习主题。", "新建分组"); return; }
-        String name = Messages.showInputDialog(project, "分组名称，例如：参数校验", "新建分组", null);
+        if (topicId == null) { Messages.showInfoMessage(project, text("请先选择一个学习主题。"), text("新建分组")); return; }
+        String name = Messages.showInputDialog(project, text("分组名称，例如：参数校验"), text("新建分组"), null);
         if (name == null) return;
         change(() -> store.book().addGroup(topicId, name).id);
     }
@@ -282,9 +311,9 @@ public final class NotesPanel extends JPanel implements Disposable {
 
     private void rename() {
         Object value = selected();
-        if (!(value instanceof Notebook.Topic) && !(value instanceof Notebook.Group)) { Messages.showInfoMessage(project, "请选择要重命名的主题或分组。", "重命名"); return; }
+        if (!(value instanceof Notebook.Topic) && !(value instanceof Notebook.Group)) { Messages.showInfoMessage(project, text("请选择要重命名的主题或分组。"), text("重命名")); return; }
         String current = value instanceof Notebook.Topic t ? t.name : ((Notebook.Group) value).name;
-        String name = Messages.showInputDialog(project, "新的名称", "重命名", null, current, null);
+        String name = Messages.showInputDialog(project, text("新的名称"), text("重命名"), null, current, null);
         if (name == null) return;
         change(() -> { if (value instanceof Notebook.Topic t) store.book().renameTopic(t.id, name); else store.book().renameGroup(((Notebook.Group) value).id, name); return key(value); });
     }
@@ -292,8 +321,8 @@ public final class NotesPanel extends JPanel implements Disposable {
     private void deleteSelection() {
         Object value = selected(); if (value == null) return;
         String name = value instanceof Notebook.Note n ? n.title : value instanceof Notebook.Group g ? g.name : ((Notebook.Topic) value).name;
-        String description = value instanceof Notebook.Note ? "删除笔记「" + name + "」？" : "删除「" + name + "」及其下所有笔记？";
-        if (Messages.showYesNoDialog(project, description + "\n此操作无法撤销。", "确认删除", "删除", "取消", Messages.getWarningIcon()) != Messages.YES) return;
+        String description = value instanceof Notebook.Note ? text("删除笔记「{0}」？", name) : text("删除「{0}」及其下所有笔记？", name);
+        if (Messages.showYesNoDialog(project, description + "\n" + text("此操作无法撤销。"), text("确认删除"), text("删除"), text("取消"), Messages.getWarningIcon()) != Messages.YES) return;
         if (value instanceof Notebook.Note n) store.book().deleteNote(n.id);
         else if (value instanceof Notebook.Group g) store.book().deleteGroup(g.id);
         else store.book().deleteTopic(((Notebook.Topic) value).id);
@@ -305,7 +334,7 @@ public final class NotesPanel extends JPanel implements Disposable {
             String id = operation.get(); store.changed();
             DefaultMutableTreeNode node = nodes.get(id);
             if (node != null) { TreePath path = new TreePath(node.getPath()); tree.expandPath(path); tree.setSelectionPath(path); tree.scrollPathToVisible(path); }
-        } catch (IllegalArgumentException ex) { Messages.showErrorDialog(project, ex.getMessage(), "操作未完成"); }
+        } catch (IllegalArgumentException ex) { Messages.showErrorDialog(project, ex.getMessage(), text("操作未完成")); }
     }
 
     public void selectNote(String id) {
@@ -331,5 +360,14 @@ public final class NotesPanel extends JPanel implements Disposable {
         button.setMaximumSize(JBUI.size(30, 28)); button.setMargin(JBUI.emptyInsets());
         button.addActionListener(e -> command.run()); return button;
     }
-    @Override public void dispose() { store.book().layout(!splitter.getOrientation(), splitter.getProportion()); }
+    private void translate(Runnable action) { translations.add(action); action.run(); }
+    private JButton navigationButton(String key, Icon icon, Runnable command) {
+        JButton button = button(text(key), icon, command);
+        translate(() -> {
+            button.setToolTipText(text(key));
+            button.getAccessibleContext().setAccessibleName(text(key));
+        });
+        return button;
+    }
+    @Override public void dispose() { disposed = true; store.book().layout(!splitter.getOrientation(), splitter.getProportion()); }
 }

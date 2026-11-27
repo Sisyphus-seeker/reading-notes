@@ -1,5 +1,6 @@
 package dev.readingnotes.model;
 
+import static dev.readingnotes.model.I18n.text;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -16,10 +17,10 @@ public final class ShareEngine {
         IMPORT("导入"), SKIP("跳过"), REPLACE("替换当前"), COPY("保留两条");
         private final String label;
         Action(String label) { this.label = label; }
-        @Override public String toString() { return label; }
+        @Override public String toString() { return text(label); }
     }
     public record Candidate(int line, String code, int support) {
-        @Override public String toString() { return "第 " + line + " 行：" + clip(code.strip(), 90); }
+        @Override public String toString() { return text("第 {0} 行：{1}", line, clip(code.strip(), 90)); }
     }
     public static final class Row {
         public final NoteBundle.Entry entry;
@@ -38,7 +39,7 @@ public final class ShareEngine {
         private Row(NoteBundle.Entry entry, String group) { this.entry = entry; destinationGroup = group; }
         public boolean attached() { return chosenLine > 0 && !hash.isEmpty(); }
         public void chooseLine(int line) {
-            NoteBundle.require(line > 0 && line <= lines(source).size() && !hash.isEmpty(), "请先选择有效的目标文件和行号");
+            NoteBundle.require(line > 0 && line <= lines(source).size() && !hash.isEmpty(), text("请先选择有效的目标文件和行号"));
             chosenLine = line;
             classify();
         }
@@ -58,7 +59,7 @@ public final class ShareEngine {
             if (action == null) action = existing == null ? Action.IMPORT : Action.SKIP;
             if (duplicate) action = Action.SKIP;
         }
-        public String status() { return attached() ? (match == Match.RELIABLE ? "可靠匹配" : "已手动确认") : match == Match.MISSING ? "文件缺失" : "位置待确认"; }
+        public String status() { return attached() ? (match == Match.RELIABLE ? text("可靠匹配") : text("已手动确认")) : match == Match.MISSING ? text("文件缺失") : text("位置待确认"); }
     }
     public static final class Plan {
         public final Notebook.Data base;
@@ -87,26 +88,26 @@ public final class ShareEngine {
         return value.substring(0, end);
     }
     public static String relative(String value) {
-        NoteBundle.require(value != null && !value.isBlank() && value.length() <= 1024, "文件相对路径缺失或过长");
+        NoteBundle.require(value != null && !value.isBlank() && value.length() <= 1024, text("文件相对路径缺失或过长"));
         String p = value.replace('\\', '/');
-        NoteBundle.require(!p.startsWith("/") && p.indexOf(':') < 0 && p.indexOf('\0') < 0, "分享文件只能使用项目内相对路径");
+        NoteBundle.require(!p.startsWith("/") && p.indexOf(':') < 0 && p.indexOf('\0') < 0, text("分享文件只能使用项目内相对路径"));
         for (String part : p.split("/", -1))
-            NoteBundle.require(!part.isEmpty() && !part.equals(".") && !part.equals(".."), "相对路径不能包含空目录、. 或 ..");
+            NoteBundle.require(!part.isEmpty() && !part.equals(".") && !part.equals(".."), text("相对路径不能包含空目录、. 或 .."));
         return p;
     }
     public static Path safeFile(Path root, String relative) throws IOException {
         Path realRoot = root.toRealPath();
         Path candidate = realRoot.resolve(relative(relative)).normalize();
-        NoteBundle.require(candidate.startsWith(realRoot), "目标文件位于所选目录之外");
+        NoteBundle.require(candidate.startsWith(realRoot), text("目标文件位于所选目录之外"));
         Path ancestor = candidate;
         while (!Files.exists(ancestor)) {
-            NoteBundle.require(!Files.isSymbolicLink(ancestor), "文件路径包含失效的链接，请重新选择文件");
+            NoteBundle.require(!Files.isSymbolicLink(ancestor), text("文件路径包含失效的链接，请重新选择文件"));
             ancestor = ancestor.getParent();
         }
-        NoteBundle.require(ancestor.toRealPath().startsWith(realRoot), "文件目录链接指向所选目录之外，请重新选择文件");
+        NoteBundle.require(ancestor.toRealPath().startsWith(realRoot), text("文件目录链接指向所选目录之外，请重新选择文件"));
         if (!Files.isRegularFile(candidate)) return null;
         Path actual = candidate.toRealPath();
-        NoteBundle.require(actual.startsWith(realRoot), "目标文件链接指向所选目录之外，请重新选择文件");
+        NoteBundle.require(actual.startsWith(realRoot), text("目标文件链接指向所选目录之外，请重新选择文件"));
         return actual;
     }
 
@@ -117,7 +118,7 @@ public final class ShareEngine {
         for (Notebook.Group g : data.groups) if (topics.contains(g.topicId) || scope == Scope.GROUP && g.id.equals(selectionId)) groups.add(g.id);
         Set<String> selectedGroups = Set.copyOf(groups);
         List<Notebook.Note> selectedNotes = data.notes.stream().filter(n -> selectedGroups.contains(n.groupId) || scope == Scope.NOTE && n.id.equals(selectionId)).limit(NoteBundle.MAX_NOTES + 1).toList();
-        NoteBundle.require(selectedNotes.size() <= NoteBundle.MAX_NOTES, "笔记过多，请选择较小的主题或分组导出");
+        NoteBundle.require(selectedNotes.size() <= NoteBundle.MAX_NOTES, text("笔记过多，请选择较小的主题或分组导出"));
         Map<String, String> sources = new HashMap<>();
         long sourceChars = 0;
         for (Notebook.Note n : selectedNotes) {
@@ -138,7 +139,7 @@ public final class ShareEngine {
                 if (text == null) {
                     try { text = source.read(file); }
                     catch (IOException unavailable) { /* Keep previously captured context. */ }
-                    if (text != null) { sourceChars += text.length(); NoteBundle.require(sourceChars <= 32 * 1024 * 1024, "源码范围过大，请分批导出"); sources.put(e.note.filePath, text); }
+                    if (text != null) { sourceChars += text.length(); NoteBundle.require(sourceChars <= 32 * 1024 * 1024, text("源码范围过大，请分批导出")); sources.put(e.note.filePath, text); }
                 }
                 List<String> lines = text == null ? List.of() : lines(text); int line = n.line - 1;
                 if (line >= 0 && line < lines.size() && lines.get(line).strip().equals(n.context)) {
@@ -158,7 +159,7 @@ public final class ShareEngine {
     public static Plan plan(Notebook.Data current, NoteBundle bundle, Path project, Path codeRoot,
                             Map<String, String> mapping, SourceAccess access) throws IOException {
         bundle.validate(); Path projectRoot = project.toRealPath(), selectedRoot = codeRoot.toRealPath();
-        NoteBundle.require(selectedRoot.startsWith(projectRoot) && Files.isDirectory(selectedRoot), "代码根目录必须位于当前项目中");
+        NoteBundle.require(selectedRoot.startsWith(projectRoot) && Files.isDirectory(selectedRoot), text("代码根目录必须位于当前项目中"));
         Notebook copy = new Notebook(); copy.load(current); Notebook.Data base = copy.snapshot(), result = copy.snapshot();
         Plan plan = new Plan(base, result, projectRoot);
         Map<String, String> topicIds = new HashMap<>(), groupIds = new HashMap<>();
@@ -182,14 +183,14 @@ public final class ShareEngine {
             // Even missing files retain a portable target path so their notes survive import.
             String clean = relative(mapped);
             row.path = relative(projectRoot.relativize(selectedRoot.resolve(clean).normalize()).toString());
-            if (e.anchor.external && !mapping.containsKey(e.note.filePath)) { row.reason = "原笔记绑定项目外文件，请先映射到当前项目中的文件"; continue; }
+            if (e.anchor.external && !mapping.containsKey(e.note.filePath)) { row.reason = text("原笔记绑定项目外文件，请先映射到当前项目中的文件"); continue; }
             Path file = safeFile(selectedRoot, clean);
-            if (file == null) { row.reason = "找不到文件，请在路径映射中选择新文件"; continue; }
+            if (file == null) { row.reason = text("找不到文件，请在路径映射中选择新文件"); continue; }
             String text = cache.get(file);
             if (text == null) {
                 try { text = access.read(file); }
-                catch (IOException failure) { row.reason = "无法读取源码：" + failure.getMessage(); continue; }
-                sourceChars += text.length(); NoteBundle.require(sourceChars <= 32 * 1024 * 1024, "源码范围过大，请分批导入"); cache.put(file, text);
+                catch (IOException failure) { row.reason = text("无法读取源码：{0}", failure.getMessage()); continue; }
+                sourceChars += text.length(); NoteBundle.require(sourceChars <= 32 * 1024 * 1024, text("源码范围过大，请分批导入")); cache.put(file, text);
             }
             row.source = text; row.hash = hash(text);
             resolve(row);
@@ -201,10 +202,10 @@ public final class ShareEngine {
     private static void resolve(Row row) {
         NoteBundle.Anchor a = row.entry.anchor; List<String> lines = lines(row.source);
         int old = row.entry.note.line - 1;
-        row.match = Match.REVIEW; row.reason = "代码已变化，请选择候选位置或保留为待绑定";
+        row.match = Match.REVIEW; row.reason = text("代码已变化，请选择候选位置或保留为待绑定");
         if (a.available && !row.entry.note.detached && row.hash.equals(a.sourceHash)
             && old >= 0 && old < lines.size() && lines.get(old).strip().equals(a.code.strip())) {
-            row.match = Match.RELIABLE; row.chosenLine = old + 1; row.reason = "文件内容与分享时一致";
+            row.match = Match.RELIABLE; row.chosenLine = old + 1; row.reason = text("文件内容与分享时一致");
         }
         int available = (int) java.util.stream.Stream.concat(a.before.stream(), a.after.stream()).filter(ShareEngine::meaningful).count();
         List<Candidate> exact = new ArrayList<>(), nearby = new ArrayList<>();
@@ -222,7 +223,7 @@ public final class ShareEngine {
             boolean unique = exact.size() == 1 || exact.get(1).support < best.support;
             int required = Math.max(Math.min(2, available), (available + 1) / 2);
             if (unique && best.support >= required) {
-                row.match = Match.RELIABLE; row.chosenLine = best.line; row.reason = "代码及周边上下文唯一匹配，已恢复新行号";
+                row.match = Match.RELIABLE; row.chosenLine = best.line; row.reason = text("代码及周边上下文唯一匹配，已恢复新行号");
             }
         }
     }
@@ -243,7 +244,7 @@ public final class ShareEngine {
         Set<String> checked = new HashSet<>();
         for (Row row : plan.rows) if (row.action != Action.SKIP && row.attached() && checked.add(row.path)) {
             Path file = safeFile(plan.projectRoot, row.path);
-            NoteBundle.require(file != null && hash(access.read(file)).equals(row.hash), "预览后代码文件发生变化，请重新匹配后再导入");
+            NoteBundle.require(file != null && hash(access.read(file)).equals(row.hash), text("预览后代码文件发生变化，请重新匹配后再导入"));
         }
     }
     public static Notebook.Data merge(Plan plan) {
@@ -252,11 +253,11 @@ public final class ShareEngine {
         Set<String> ids = new HashSet<>(); result.notes.forEach(n -> ids.add(n.id));
         for (Row row : plan.rows) {
             if (row.action == Action.SKIP) continue;
-            NoteBundle.require(!row.duplicate && (!row.conflict ? row.action == Action.IMPORT : row.action == Action.REPLACE || row.action == Action.COPY), "请为冲突笔记选择跳过、替换当前或保留两条");
+            NoteBundle.require(!row.duplicate && (!row.conflict ? row.action == Action.IMPORT : row.action == Action.REPLACE || row.action == Action.COPY), text("请为冲突笔记选择跳过、替换当前或保留两条"));
             Notebook.Note value = new Notebook.Note(row.entry.note); value.groupId = row.destinationGroup; value.filePath = row.path;
             if (row.action == Action.COPY) value.id = uniqueId("", ids);
             if (row.action == Action.REPLACE) result.notes.removeIf(n -> n.id.equals(value.id));
-            NoteBundle.require(ids.add(value.id) || row.action == Action.REPLACE, "笔记 ID 冲突，请重新预览");
+            NoteBundle.require(ids.add(value.id) || row.action == Action.REPLACE, text("笔记 ID 冲突，请重新预览"));
             value.detached = !row.attached();
             if (row.attached()) {
                 List<String> lines = lines(row.source); int i = row.chosenLine - 1;

@@ -12,10 +12,14 @@ import org.jetbrains.annotations.NotNull;
 public final class NotebookService implements PersistentStateComponent<Notebook.Data>, Disposable {
     public interface Listener { void changed(); }
     public static final Topic<Listener> CHANGED = Topic.create("Reading notes changed", Listener.class);
-    private final Notebook notebook = new Notebook();
+    private final Notebook notebook;
     private final Project project;
 
-    public NotebookService(Project project) { this.project = project; }
+    public NotebookService(Project project) {
+        this.project = project;
+        LanguageSettings.get(); // Load the application language before creating new default names.
+        notebook = new Notebook();
+    }
     public static NotebookService get(Project project) { return project.getService(NotebookService.class); }
     public Notebook book() { return notebook; }
     @Override public Notebook.Data getState() { return NotebookStorage.encode(notebook.snapshot()); }

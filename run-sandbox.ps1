@@ -47,6 +47,8 @@ if ($SmokeTest -or $CheckRestart) {
     $resultName = if ($CheckRestart) { 'restart-result.txt' } else { 'smoke-result.txt' }
     $sharingResult = Join-Path $results $(if ($CheckRestart) { 'sharing-restart.txt' } else { 'sharing-result.txt' })
     if (Test-Path -LiteralPath $sharingResult) { Remove-Item -LiteralPath $sharingResult -Force }
+    $languageResult = Join-Path $results $(if ($CheckRestart) { 'language-restart.txt' } else { 'language-result.txt' })
+    if (Test-Path -LiteralPath $languageResult) { Remove-Item -LiteralPath $languageResult -Force }
     foreach ($fileName in @($resultName, 'smoke-failure.txt')) {
         $resultFile = Join-Path $results $fileName
         if (Test-Path -LiteralPath $resultFile) { Remove-Item -LiteralPath $resultFile -Force }

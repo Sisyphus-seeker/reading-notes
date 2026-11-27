@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 — 2026-11-27
+
+- Add a keyboard-accessible **中文 / EN** selector with Simplified Chinese and English options.
+- Refresh open notes panels immediately and retain the choice across projects and IDE restarts.
+- Translate menus, gutter labels, editor actions, note dialogs, import/export previews and validation messages.
+- Preserve existing note content, topic/group names, IDs and code bindings; keep language preferences outside shared notebooks.
+- Add catalog coverage, live switching, English rendering and restart-persistence checks.
+
 ## 0.2.0 — 2026-11-27
 
 - Share selected topics, groups or individual notes as local JSON with portable paths and up to seven lines of source context.

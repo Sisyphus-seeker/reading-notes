@@ -59,5 +59,6 @@ public final class NotebookTest {
         check(AnchorResolver.resolve(List.of("a", "", "b"), 2, "", "a", "b") == 1, "Blank-line notes are supported");
         System.out.println("PASS: " + checks + " notebook and anchor checks");
         ShareEngineTest.run();
+        I18nTest.run();
     }
 }

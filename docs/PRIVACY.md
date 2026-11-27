@@ -8,6 +8,8 @@ When you create notes, the plugin stores topic/group names, note titles and bodi
 
 Files inside the project use relative paths; external files use absolute file URLs. Source context is stored to recover a note's location after code changes.
 
+From 0.3.0, the interface language choice is stored in the IDE configuration's `options/reading-notes-settings.xml`. It is shared across local projects and excluded from exported note bundles. Changing this preference does not translate existing note content or topic/group names.
+
 ## Transmission and services
 
 The plugin does not collect analytics or telemetry, contact external services, upload source code or notes, or require a cloud account. It does not control any separate data processing performed by the IDE or other plugins.

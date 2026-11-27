@@ -1,5 +1,6 @@
 package dev.readingnotes.sharing;
 
+import static dev.readingnotes.model.I18n.text;
 import com.google.gson.*;
 import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.util.xmlb.XmlSerializer;
@@ -23,18 +24,18 @@ public final class BundleFiles {
     public static NoteBundle read(Path file) throws IOException {
         byte[] bytes;
         try (var input = Files.newInputStream(file)) { bytes = input.readNBytes(MAX_BYTES + 1); }
-        NoteBundle.require(bytes.length <= MAX_BYTES, "分享文件超过 16 MB，请分批导入");
+        NoteBundle.require(bytes.length <= MAX_BYTES, text("分享文件超过 16 MB，请分批导入"));
         String text = StandardCharsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(bytes)).toString();
         if (text.startsWith("\ufeff")) text = text.substring(1);
         checkDepth(text);
         try {
             NoteBundle bundle = JSON.fromJson(text, NoteBundle.class);
-            NoteBundle.require(bundle != null, "分享文件为空"); bundle.validate(); return bundle;
-        } catch (JsonParseException e) { throw new IllegalArgumentException("分享文件不是有效的 JSON：" + e.getMessage(), e); }
+            NoteBundle.require(bundle != null, text("分享文件为空")); bundle.validate(); return bundle;
+        } catch (JsonParseException e) { throw new IllegalArgumentException(text("分享文件不是有效的 JSON：{0}", e.getMessage()), e); }
     }
     public static void write(Path file, NoteBundle bundle) throws IOException {
         bundle.validate(); byte[] bytes = JSON.toJson(bundle).getBytes(StandardCharsets.UTF_8);
-        NoteBundle.require(bytes.length <= MAX_BYTES, "导出内容超过 16 MB，请选择较小的主题或分组");
+        NoteBundle.require(bytes.length <= MAX_BYTES, text("导出内容超过 16 MB，请选择较小的主题或分组"));
         atomicWrite(file, bytes);
     }
     public static Path backup(Path projectRoot, Notebook.Data data) throws IOException {
@@ -48,7 +49,7 @@ public final class BundleFiles {
     }
     private static void atomicWrite(Path file, byte[] bytes) throws IOException {
         Path target = file.toAbsolutePath().normalize(); Path parent = target.getParent();
-        NoteBundle.require(parent != null && Files.isDirectory(parent), "目标目录不存在");
+        NoteBundle.require(parent != null && Files.isDirectory(parent), text("目标目录不存在"));
         Path temporary = Files.createTempFile(parent, ".reading-notes-", ".tmp");
         try {
             Files.write(temporary, bytes);
@@ -62,7 +63,7 @@ public final class BundleFiles {
             char c = text.charAt(i);
             if (quoted) { if (escaped) escaped = false; else if (c == '\\') escaped = true; else if (c == '"') quoted = false; }
             else if (c == '"') quoted = true;
-            else if (c == '{' || c == '[') { if (++depth > 32) throw new IllegalArgumentException("JSON 嵌套过深，无法读取"); }
+            else if (c == '{' || c == '[') { if (++depth > 32) throw new IllegalArgumentException(text("JSON 嵌套过深，无法读取")); }
             else if (c == '}' || c == ']') depth--;
         }
     }

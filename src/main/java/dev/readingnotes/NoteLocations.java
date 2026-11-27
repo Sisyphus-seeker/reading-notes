@@ -1,5 +1,6 @@
 package dev.readingnotes;
 
+import dev.readingnotes.model.I18n;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -28,14 +29,14 @@ public final class NoteLocations {
 
     public static Notebook.Note capture(Project project, Editor editor) {
         VirtualFile file = FileDocumentManager.getInstance().getFile(editor.getDocument());
-        if (file == null || !file.isInLocalFileSystem()) throw new IllegalArgumentException("请在本地代码文件中创建笔记");
+        if (file == null || !file.isInLocalFileSystem()) throw new IllegalArgumentException(I18n.text("请在本地代码文件中创建笔记"));
         Notebook.Note n = new Notebook.Note();
         n.filePath = path(project, file);
         int line = editor.getCaretModel().getLogicalPosition().line;
         updateContext(n, editor.getDocument(), line);
         String selected = editor.getSelectionModel().getSelectedText();
         n.title = (selected == null || selected.isBlank()) ? n.context : selected.lines().findFirst().orElse("");
-        if (n.title.isBlank()) n.title = "第 " + n.line + " 行笔记";
+        if (n.title.isBlank()) n.title = I18n.text("第 {0} 行笔记", n.line);
         if (n.title.length() > 80) n.title = n.title.substring(0, 80);
         return n;
     }

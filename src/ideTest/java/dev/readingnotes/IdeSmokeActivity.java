@@ -53,6 +53,7 @@ public final class IdeSmokeActivity implements StartupActivity.DumbAware {
     }
 
     private void exercise() throws Exception {
+        LanguageSettings.get().setLanguage(dev.readingnotes.model.I18n.Language.CHINESE);
         NotebookService store = NotebookService.get(project);
         Notebook book = store.book();
         book.load(new Notebook().snapshot());
@@ -141,7 +142,7 @@ public final class IdeSmokeActivity implements StartupActivity.DumbAware {
             project.save();
             Files.write(results.resolve("smoke-result.txt"), passed);
             NotesUi.reveal(project, noteId, true);
-            SharingIdeChecks.run(project, results, () -> later(this::exit));
+            SharingIdeChecks.run(project, results, () -> later(() -> LanguageIdeChecks.run(project, results, noteId, () -> later(this::exit))));
         });
     }
 
@@ -155,6 +156,7 @@ public final class IdeSmokeActivity implements StartupActivity.DumbAware {
         check(!NoteAnchors.get(project).resolveLocation(attached.id).detached, "Saved source anchor restored after IDE restart");
         Files.write(results.resolve("restart-result.txt"), passed);
         SharingIdeChecks.checkRestart(project, results);
+        LanguageIdeChecks.checkRestart(project, results);
         exit();
     }
 

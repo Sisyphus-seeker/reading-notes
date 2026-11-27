@@ -1,5 +1,6 @@
 package dev.readingnotes;
 
+import static dev.readingnotes.model.I18n.text;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -63,6 +64,7 @@ public final class NoteAnchors implements Disposable {
         this.project = project;
         store = NotebookService.get(project);
         project.getMessageBus().connect(this).subscribe(NotebookService.CHANGED, () -> { if (!updating) refresh(); });
+        project.getMessageBus().connect(this).subscribe(LanguageSettings.CHANGED, this::refresh);
         EditorFactory factory = EditorFactory.getInstance();
         factory.addEditorFactoryListener(new EditorFactoryListener() {
             @Override public void editorCreated(@NotNull EditorFactoryEvent e) {
@@ -248,15 +250,15 @@ public final class NoteAnchors implements Disposable {
         private NoteGutter(List<String> ids) { this.ids = List.copyOf(ids); }
         @Override public @NotNull Icon getIcon() { return NotesIcons.NOTE; }
         @Override public boolean isNavigateAction() { return true; }
-        @Override public String getAccessibleName() { return "行笔记"; }
+        @Override public String getAccessibleName() { return text("行笔记"); }
         @Override public String getTooltipText() {
             List<Notebook.Note> notes = ids.stream().map(store.book()::note).filter(Objects::nonNull).toList();
-            if (notes.isEmpty()) return "行笔记";
+            if (notes.isEmpty()) return text("行笔记");
             String title = notes.get(0).title;
-            return notes.size() > 1 ? title + " · 共 " + notes.size() + " 条笔记，点击查看" : title + " · 点击查看或编辑";
+            return notes.size() > 1 ? text("{0} · 共 {1} 条笔记，点击查看", title, notes.size()) : text("{0} · 点击查看或编辑", title);
         }
         @Override public AnAction getClickAction() {
-            return new DumbAwareAction("查看行笔记") {
+            return new DumbAwareAction(text("查看行笔记")) {
                 @Override public void actionPerformed(@NotNull AnActionEvent e) { NotesUi.openLine(project, ids, e); }
             };
         }

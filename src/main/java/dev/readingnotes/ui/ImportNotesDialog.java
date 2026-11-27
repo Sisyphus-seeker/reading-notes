@@ -1,5 +1,6 @@
 package dev.readingnotes.ui;
 
+import static dev.readingnotes.model.I18n.text;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -22,13 +23,13 @@ public final class ImportNotesDialog extends DialogWrapper {
     private final NoteBundle bundle;
     private final NotebookSharing sharing;
     private final JBTextField root = new JBTextField();
-    private final JBLabel summary = new JBLabel("正在匹配代码位置…");
+    private final JBLabel summary = new JBLabel(text("正在匹配代码位置…"));
     private final JBTextArea reason = area();
     private final JBTextArea original = area(), target = area(), body = area();
     private final JComboBox<ShareEngine.Candidate> candidates = new JComboBox<>();
     private final JSpinner line = new JSpinner(new SpinnerNumberModel(1, 1, 1, 1));
-    private final JButton adopt = new JButton("采用此行");
-    private final JButton match = new JButton("重新匹配");
+    private final JButton adopt = new JButton(text("采用此行"));
+    private final JButton match = new JButton(text("重新匹配"));
     private final LinkedHashMap<String, String> overrides = new LinkedHashMap<>();
     private final List<String> files;
     private final JTable paths;
@@ -42,11 +43,11 @@ public final class ImportNotesDialog extends DialogWrapper {
     public ImportNotesDialog(Project project, NoteBundle bundle) {
         super(project, true); this.project = project; this.bundle = bundle; sharing = new NotebookSharing(project);
         bundle.validate(); files = bundle.notes.stream().map(n -> n.note.filePath).distinct().toList();
-        root.setText(sharing.root().toString()); root.getAccessibleContext().setAccessibleName("当前项目内的代码根目录");
+        root.setText(sharing.root().toString()); root.getAccessibleContext().setAccessibleName(text("当前项目内的代码根目录"));
         paths = new JTable(new AbstractTableModel() {
             @Override public int getRowCount() { return files.size(); }
             @Override public int getColumnCount() { return 2; }
-            @Override public String getColumnName(int c) { return c == 0 ? "分享文件中的路径" : "代码根目录下的目标相对路径"; }
+            @Override public String getColumnName(int c) { return c == 0 ? text("分享文件中的路径") : text("代码根目录下的目标相对路径"); }
             @Override public Object getValueAt(int r, int c) { String path = files.get(r); return c == 0 ? path : overrides.getOrDefault(path, path); }
             @Override public boolean isCellEditable(int r, int c) { return c == 1 && !busy; }
             @Override public void setValueAt(Object value, int r, int c) { overrides.put(files.get(r), value.toString().strip()); fireTableCellUpdated(r, c); dirty(); }
@@ -54,7 +55,7 @@ public final class ImportNotesDialog extends DialogWrapper {
         noteModel = new AbstractTableModel() {
             @Override public int getRowCount() { return plan == null ? 0 : plan.rows.size(); }
             @Override public int getColumnCount() { return 5; }
-            @Override public String getColumnName(int c) { return new String[]{"笔记标题", "目标文件", "代码位置", "内容状态", "导入处理"}[c]; }
+            @Override public String getColumnName(int c) { return new String[]{text("笔记标题"), text("目标文件"), text("代码位置"), text("内容状态"), text("导入处理")}[c]; }
             @Override public Class<?> getColumnClass(int c) { return c == 4 ? ShareEngine.Action.class : String.class; }
             @Override public boolean isCellEditable(int r, int c) { return c == 4 && !busy && !dirty; }
             @Override public Object getValueAt(int r, int c) {
@@ -63,7 +64,7 @@ public final class ImportNotesDialog extends DialogWrapper {
                     case 0 -> row.entry.note.title;
                     case 1 -> row.path;
                     case 2 -> row.status() + (row.attached() ? " · " + row.chosenLine : "");
-                    case 3 -> row.duplicate ? "重复内容" : row.conflict ? "与当前笔记冲突" : "新增";
+                    case 3 -> row.duplicate ? text("重复内容") : row.conflict ? text("与当前笔记冲突") : text("新增");
                     default -> row.action;
                 };
             }
@@ -79,7 +80,7 @@ public final class ImportNotesDialog extends DialogWrapper {
                 return new DefaultCellEditor(new JComboBox<>(choices));
             }
         };
-        setTitle("导入分享笔记"); setOKButtonText("确认合并导入"); setCancelButtonText("取消"); setResizable(true);
+        setTitle(text("导入分享笔记")); setOKButtonText(text("确认合并导入")); setCancelButtonText(text("取消")); setResizable(true);
         init(); getWindow().setMinimumSize(JBUI.size(720, 600)); setOKActionEnabled(false);
         root.getDocument().addDocumentListener(new DocumentListener() {
             @Override public void insertUpdate(DocumentEvent e) { dirty(); }
@@ -93,7 +94,7 @@ public final class ImportNotesDialog extends DialogWrapper {
         line.addChangeListener(e -> previewLine());
         adopt.addActionListener(e -> {
             ShareEngine.Row row = selected(); if (row == null) return;
-            row.chooseLine((Integer) line.getValue()); row.match = ShareEngine.Match.REVIEW; row.reason = "已手动确认第 " + row.chosenLine + " 行";
+            row.chooseLine((Integer) line.getValue()); row.match = ShareEngine.Match.REVIEW; row.reason = text("已手动确认第 {0} 行", row.chosenLine);
             int index = notes.convertRowIndexToModel(notes.getSelectedRow());
             noteModel.fireTableRowsUpdated(index, index); reason.setText(row.reason); counts();
         });
@@ -104,26 +105,26 @@ public final class ImportNotesDialog extends DialogWrapper {
     @Override protected JComponent createCenterPanel() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(10))); panel.setPreferredSize(JBUI.size(960, 700));
         JPanel heading = new JPanel(new BorderLayout(8, 8));
-        JBLabel rootLabel = new JBLabel("代码根目录"); rootLabel.setLabelFor(root);
+        JBLabel rootLabel = new JBLabel(text("代码根目录")); rootLabel.setLabelFor(root);
         JPanel location = new JPanel(new BorderLayout(8, 0)); location.add(rootLabel, BorderLayout.WEST); location.add(root, BorderLayout.CENTER);
-        JButton folder = new JButton("选择目录…"); folder.addActionListener(e -> chooseRoot()); location.add(folder, BorderLayout.EAST);
+        JButton folder = new JButton(text("选择目录…")); folder.addActionListener(e -> chooseRoot()); location.add(folder, BorderLayout.EAST);
         heading.add(location, BorderLayout.NORTH);
         JPanel status = new JPanel(new BorderLayout(8, 0)); status.add(summary, BorderLayout.CENTER); status.add(match, BorderLayout.EAST);
         heading.add(status, BorderLayout.SOUTH); panel.add(heading, BorderLayout.NORTH);
-        configure(notes, "待导入笔记及定位、冲突处理"); configure(paths, "文件路径映射");
+        configure(notes, text("待导入笔记及定位、冲突处理")); configure(paths, text("文件路径映射"));
         JTabbedPane tabs = new JTabbedPane();
         JPanel review = new JPanel(new BorderLayout(0, 8));
         JBScrollPane noteScroll = new JBScrollPane(notes); noteScroll.setMinimumSize(JBUI.size(120, 90));
         JComponent sourcePreview = preview(); sourcePreview.setMinimumSize(JBUI.size(120, 170));
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, noteScroll, sourcePreview); split.setResizeWeight(.42);
         review.add(split, BorderLayout.CENTER);
-        JBTextArea hint = area(); hint.setText("点击“导入处理”选择合并方式；位置待确认的笔记也会保留。导入前自动备份。"); hint.setRows(2); hint.setOpaque(false);
-        review.add(hint, BorderLayout.SOUTH); tabs.addTab("笔记预览", review);
+        JBTextArea hint = area(); hint.setText(text("点击“导入处理”选择合并方式；位置待确认的笔记也会保留。导入前自动备份。")); hint.setRows(2); hint.setOpaque(false);
+        review.add(hint, BorderLayout.SOUTH); tabs.addTab(text("笔记预览"), review);
         JPanel mapping = new JPanel(new BorderLayout(0, 8)); mapping.add(new JBScrollPane(paths), BorderLayout.CENTER);
         JPanel commands = new JPanel(new FlowLayout(FlowLayout.LEADING, 8, 0));
-        JButton file = new JButton("为所选路径选择文件…"); file.addActionListener(e -> chooseFile());
-        JButton prefix = new JButton("批量替换路径前缀…"); prefix.addActionListener(e -> replacePrefix());
-        commands.add(file); commands.add(prefix); mapping.add(commands, BorderLayout.SOUTH); tabs.addTab("文件路径映射", mapping);
+        JButton file = new JButton(text("为所选路径选择文件…")); file.addActionListener(e -> chooseFile());
+        JButton prefix = new JButton(text("批量替换路径前缀…")); prefix.addActionListener(e -> replacePrefix());
+        commands.add(file); commands.add(prefix); mapping.add(commands, BorderLayout.SOUTH); tabs.addTab(text("文件路径映射"), mapping);
         panel.add(tabs, BorderLayout.CENTER); return panel;
     }
     private JComponent preview() {
@@ -131,16 +132,16 @@ public final class ImportNotesDialog extends DialogWrapper {
         reason.setRows(2); panel.add(reason, BorderLayout.NORTH);
         JTabbedPane tabs = new JTabbedPane();
         JPanel code = new JPanel(new BorderLayout(0, 6));
-        JPanel pair = new JPanel(new GridLayout(1, 2, 8, 0)); pair.add(labelled("分享时的代码片段", original)); pair.add(labelled("当前文件中的位置", target));
+        JPanel pair = new JPanel(new GridLayout(1, 2, 8, 0)); pair.add(labelled(text("分享时的代码片段"), original)); pair.add(labelled(text("当前文件中的位置"), target));
         code.add(pair, BorderLayout.CENTER);
         JPanel choose = new JPanel(new BorderLayout(6, 0));
-        candidates.setPreferredSize(JBUI.size(350, 28)); candidates.getAccessibleContext().setAccessibleName("候选代码位置");
-        line.getAccessibleContext().setAccessibleName("待确认的目标行号");
+        candidates.setPreferredSize(JBUI.size(350, 28)); candidates.getAccessibleContext().setAccessibleName(text("候选代码位置"));
+        line.getAccessibleContext().setAccessibleName(text("待确认的目标行号"));
         candidates.setMinimumSize(JBUI.size(60, 28));
-        JPanel choices = new JPanel(new BorderLayout(6, 0)); choices.add(new JBLabel("候选"), BorderLayout.WEST); choices.add(candidates, BorderLayout.CENTER);
-        JPanel confirmation = new JPanel(new FlowLayout(FlowLayout.LEADING, 6, 0)); confirmation.add(new JBLabel("行号")); confirmation.add(line); confirmation.add(adopt);
+        JPanel choices = new JPanel(new BorderLayout(6, 0)); choices.add(new JBLabel(text("候选")), BorderLayout.WEST); choices.add(candidates, BorderLayout.CENTER);
+        JPanel confirmation = new JPanel(new FlowLayout(FlowLayout.LEADING, 6, 0)); confirmation.add(new JBLabel(text("行号"))); confirmation.add(line); confirmation.add(adopt);
         choose.add(choices, BorderLayout.CENTER); choose.add(confirmation, BorderLayout.EAST);
-        code.add(choose, BorderLayout.SOUTH); tabs.addTab("代码位置", code); tabs.addTab("笔记正文", new JBScrollPane(body));
+        code.add(choose, BorderLayout.SOUTH); tabs.addTab(text("代码位置"), code); tabs.addTab(text("笔记正文"), new JBScrollPane(body));
         panel.add(tabs, BorderLayout.CENTER); return panel;
     }
     private static JPanel labelled(String label, JTextArea area) {
@@ -159,7 +160,7 @@ public final class ImportNotesDialog extends DialogWrapper {
     }
     private void dirty() {
         if (closed) return;
-        generation++; dirty = true; setOKActionEnabled(false); summary.setText("路径已修改，请点击“重新匹配”更新预览。");
+        generation++; dirty = true; setOKActionEnabled(false); summary.setText(text("路径已修改，请点击“重新匹配”更新预览。"));
         adopt.setEnabled(false);
     }
     public void replan() {
@@ -168,7 +169,7 @@ public final class ImportNotesDialog extends DialogWrapper {
         if (notes.isEditing()) notes.getCellEditor().stopCellEditing();
         int token = ++generation; Notebook.Data snapshot = sharing.snapshot();
         Map<String, String> mapping = Map.copyOf(overrides); String selectedRoot = root.getText().strip();
-        busy = true; root.setEditable(false); dirty = true; match.setEnabled(false); setOKActionEnabled(false); adopt.setEnabled(false); summary.setText("正在匹配代码位置…");
+        busy = true; root.setEditable(false); dirty = true; match.setEnabled(false); setOKActionEnabled(false); adopt.setEnabled(false); summary.setText(text("正在匹配代码位置…"));
         worker = new SwingWorker<ShareEngine.Plan, Void>() {
             @Override protected ShareEngine.Plan doInBackground() throws Exception { return sharing.plan(snapshot, bundle, Path.of(selectedRoot), mapping); }
             @Override protected void done() {
@@ -178,7 +179,7 @@ public final class ImportNotesDialog extends DialogWrapper {
                 try {
                     plan = get(); dirty = false; setErrorText(null); noteModel.fireTableDataChanged(); counts();
                     if (!plan.rows.isEmpty()) notes.setRowSelectionInterval(0, 0); else details();
-                } catch (Exception e) { plan = null; noteModel.fireTableDataChanged(); summary.setText("匹配未完成，请检查路径后重试。"); setErrorText(ShareActions.message(e)); }
+                } catch (Exception e) { plan = null; noteModel.fireTableDataChanged(); summary.setText(text("匹配未完成，请检查路径后重试。")); setErrorText(ShareActions.message(e)); }
             }
         }; worker.execute();
     }
@@ -186,7 +187,7 @@ public final class ImportNotesDialog extends DialogWrapper {
         if (plan == null) return;
         long selected = plan.selectedCount(), attached = plan.rows.stream().filter(r -> r.action != ShareEngine.Action.SKIP && r.attached()).count();
         long replacements = plan.rows.stream().filter(r -> r.action == ShareEngine.Action.REPLACE).count();
-        summary.setText("将导入 " + selected + " 条 · 已定位 " + attached + " · 待绑定 " + (selected - attached) + " · 替换 " + replacements + " 条");
+        summary.setText(text("将导入 {0} 条 · 已定位 {1} · 待绑定 {2} · 替换 {3} 条", selected, attached, selected - attached, replacements));
         setOKActionEnabled(!busy && !dirty && (selected > 0 || bundle.notes.isEmpty()));
     }
     private ShareEngine.Row selected() {
@@ -208,7 +209,7 @@ public final class ImportNotesDialog extends DialogWrapper {
         } finally { selecting = false; }
     }
     private void previewLine() {
-        ShareEngine.Row row = selected(); if (row == null || row.hash.isEmpty()) { target.setText("请在文件路径映射中选择目标文件，再重新匹配。"); return; }
+        ShareEngine.Row row = selected(); if (row == null || row.hash.isEmpty()) { target.setText(text("请在文件路径映射中选择目标文件，再重新匹配。")); return; }
         List<String> lines = ShareEngine.lines(row.source); int at = (Integer) line.getValue() - 1; StringBuilder out = new StringBuilder();
         for (int i = Math.max(0, at - 3); i <= Math.min(lines.size() - 1, at + 3); i++) out.append(i == at ? "▶ " : "  ").append(i + 1).append("  ").append(lines.get(i)).append('\n');
         target.setText(out.toString()); target.setCaretPosition(0);
@@ -222,21 +223,21 @@ public final class ImportNotesDialog extends DialogWrapper {
     private void chooseFile() {
         if (busy) return;
         if (paths.isEditing() && !paths.getCellEditor().stopCellEditing()) return;
-        int row = paths.getSelectedRow(); if (row < 0) { Messages.showInfoMessage(project, "请先选中需要映射的文件路径。", "选择目标文件"); return; }
+        int row = paths.getSelectedRow(); if (row < 0) { Messages.showInfoMessage(project, text("请先选中需要映射的文件路径。"), text("选择目标文件")); return; }
         JFileChooser chooser = new JFileChooser(sharing.root().toFile());
         if (chooser.showOpenDialog(getWindow()) != JFileChooser.APPROVE_OPTION) return;
         try {
             Path base = Path.of(root.getText().strip()).toRealPath(), chosen = chooser.getSelectedFile().toPath().toRealPath();
-            NoteBundle.require(chosen.startsWith(base), "请选择代码根目录中的文件");
+            NoteBundle.require(chosen.startsWith(base), text("请选择代码根目录中的文件"));
             paths.getModel().setValueAt(base.relativize(chosen).toString().replace('\\', '/'), paths.convertRowIndexToModel(row), 1);
         } catch (Exception e) { setErrorText(ShareActions.message(e)); }
     }
     private void replacePrefix() {
         if (busy) return;
         if (paths.isEditing() && !paths.getCellEditor().stopCellEditing()) return;
-        String from = Messages.showInputDialog(project, "原路径前缀，例如 backend/src；留空表示在所有路径前添加目录", "批量映射目录", null);
+        String from = Messages.showInputDialog(project, text("原路径前缀，例如 backend/src；留空表示在所有路径前添加目录"), text("批量映射目录"), null);
         if (from == null) return;
-        String to = Messages.showInputDialog(project, "新的路径前缀，例如 services/app/src；留空表示移除原前缀", "批量映射目录", null);
+        String to = Messages.showInputDialog(project, text("新的路径前缀，例如 services/app/src；留空表示移除原前缀"), text("批量映射目录"), null);
         if (to == null) return;
         try {
             String old = from.strip().replace('\\', '/'), replacement = to.strip().replace('\\', '/');
@@ -258,7 +259,7 @@ public final class ImportNotesDialog extends DialogWrapper {
         if (notes.isEditing() && !notes.getCellEditor().stopCellEditing()) return;
         if (dirty) return;
         busy = true; root.setEditable(false); setOKActionEnabled(false); match.setEnabled(false); adopt.setEnabled(false);
-        summary.setText("正在校验代码并备份现有笔记…");
+        summary.setText(text("正在校验代码并备份现有笔记…"));
         worker = new SwingWorker<NotebookSharing.Prepared, Void>() {
             @Override protected NotebookSharing.Prepared doInBackground() throws Exception { return sharing.prepare(plan); }
             @Override protected void done() {
@@ -268,8 +269,8 @@ public final class ImportNotesDialog extends DialogWrapper {
                     NotebookSharing.Prepared prepared = get(); sharing.commit(prepared);
                     long imported = plan.selectedCount(), pending = plan.rows.stream().filter(r -> r.action != ShareEngine.Action.SKIP && !r.attached()).count();
                     closed = true; ImportNotesDialog.super.doOKAction();
-                    Messages.showInfoMessage(project, "已导入 " + imported + " 条笔记，其中 " + pending + " 条位置待确认。\n\n导入前备份：\n" + prepared.backup(), "导入完成");
-                } catch (Exception e) { dirty = true; setErrorText(ShareActions.message(e)); summary.setText("导入未完整完成，请检查当前笔记与备份，重新预览后重试。"); }
+                    Messages.showInfoMessage(project, text("已导入 {0} 条笔记，其中 {1} 条位置待确认。\n\n导入前备份：\n{2}", imported, pending, prepared.backup()), text("导入完成"));
+                } catch (Exception e) { dirty = true; setErrorText(ShareActions.message(e)); summary.setText(text("导入未完整完成，请检查当前笔记与备份，重新预览后重试。")); }
             }
         }; worker.execute();
     }

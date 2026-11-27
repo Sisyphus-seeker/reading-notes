@@ -1,5 +1,6 @@
 package dev.readingnotes.model;
 
+import static dev.readingnotes.model.I18n.text;
 import java.util.*;
 
 /** Plain Java model. Every read returns a copy, so IDE persistence never races with edits. */
@@ -61,8 +62,8 @@ public final class Notebook {
 
     public Notebook() {
         data = new Data();
-        Topic topic = addTopic("我的学习");
-        Group group = addGroup(topic.id, "默认分组");
+        Topic topic = addTopic(text("我的学习"));
+        Group group = addGroup(topic.id, text("默认分组"));
         data.lastGroupId = group.id;
     }
 
@@ -70,7 +71,7 @@ public final class Notebook {
 
     /** Import previews are optimistic transactions: never overwrite edits made after preview. */
     public synchronized void compareAndLoad(Data expected, Data incoming) {
-        if (!signature(data).equals(signature(expected))) throw new IllegalStateException("笔记在预览后已变化，请重新匹配后再导入");
+        if (!signature(data).equals(signature(expected))) throw new IllegalStateException(text("笔记在预览后已变化，请重新匹配后再导入"));
         load(incoming);
     }
 
@@ -85,21 +86,21 @@ public final class Notebook {
     }
 
     public synchronized void load(Data incoming) {
-        Objects.requireNonNull(incoming, "笔记数据不能为空");
+        Objects.requireNonNull(incoming, text("笔记数据不能为空"));
         Data clean = copy(incoming);
         Set<String> ids = new HashSet<>();
         for (Topic t : clean.topics) {
-            if (t.id.isBlank() || !ids.add(t.id)) throw new IllegalArgumentException("主题 ID 无效或重复");
+            if (t.id.isBlank() || !ids.add(t.id)) throw new IllegalArgumentException(text("主题 ID 无效或重复"));
             t.name = required(t.name);
         }
         Set<String> groupIds = new HashSet<>();
         for (Group g : clean.groups) {
-            if (!ids.contains(g.topicId) || g.id.isBlank() || !groupIds.add(g.id)) throw new IllegalArgumentException("分组引用无效");
+            if (!ids.contains(g.topicId) || g.id.isBlank() || !groupIds.add(g.id)) throw new IllegalArgumentException(text("分组引用无效"));
             g.name = required(g.name);
         }
         Set<String> noteIds = new HashSet<>();
         for (Note n : clean.notes) {
-            if (!groupIds.contains(n.groupId) || n.id.isBlank() || !noteIds.add(n.id)) throw new IllegalArgumentException("笔记引用无效");
+            if (!groupIds.contains(n.groupId) || n.id.isBlank() || !noteIds.add(n.id)) throw new IllegalArgumentException(text("笔记引用无效"));
             n.title = required(n.title);
             n.line = Math.max(1, n.line);
         }
@@ -109,37 +110,37 @@ public final class Notebook {
 
     public synchronized Topic addTopic(String name) {
         String value = required(name);
-        if (data.topics.stream().anyMatch(t -> t.name.equals(value))) throw new IllegalArgumentException("已有同名主题");
+        if (data.topics.stream().anyMatch(t -> t.name.equals(value))) throw new IllegalArgumentException(text("已有同名主题"));
         Topic t = new Topic(id(), value); data.topics.add(t);
         return new Topic(t.id, t.name);
     }
 
     public synchronized Group addGroup(String topicId, String name) {
-        if (data.topics.stream().noneMatch(t -> t.id.equals(topicId))) throw new IllegalArgumentException("请先选择主题");
+        if (data.topics.stream().noneMatch(t -> t.id.equals(topicId))) throw new IllegalArgumentException(text("请先选择主题"));
         String value = required(name);
-        if (data.groups.stream().anyMatch(g -> g.topicId.equals(topicId) && g.name.equals(value))) throw new IllegalArgumentException("该主题下已有同名分组");
+        if (data.groups.stream().anyMatch(g -> g.topicId.equals(topicId) && g.name.equals(value))) throw new IllegalArgumentException(text("该主题下已有同名分组"));
         Group g = new Group(id(), topicId, value); data.groups.add(g);
         return new Group(g.id, g.topicId, g.name);
     }
 
     public synchronized void renameTopic(String id, String name) {
         String value = required(name);
-        if (data.topics.stream().anyMatch(t -> !t.id.equals(id) && t.name.equals(value))) throw new IllegalArgumentException("已有同名主题");
+        if (data.topics.stream().anyMatch(t -> !t.id.equals(id) && t.name.equals(value))) throw new IllegalArgumentException(text("已有同名主题"));
         data.topics.stream().filter(t -> t.id.equals(id)).findFirst().orElseThrow().name = value;
     }
 
     public synchronized void renameGroup(String id, String name) {
         Group g = data.groups.stream().filter(it -> it.id.equals(id)).findFirst().orElseThrow();
         String value = required(name);
-        if (data.groups.stream().anyMatch(it -> !it.id.equals(id) && it.topicId.equals(g.topicId) && it.name.equals(value))) throw new IllegalArgumentException("该主题下已有同名分组");
+        if (data.groups.stream().anyMatch(it -> !it.id.equals(id) && it.topicId.equals(g.topicId) && it.name.equals(value))) throw new IllegalArgumentException(text("该主题下已有同名分组"));
         g.name = value;
     }
 
     public synchronized Note saveNote(Note draft) {
-        if (data.groups.stream().noneMatch(g -> g.id.equals(draft.groupId))) throw new IllegalArgumentException("请选择笔记所属分组");
+        if (data.groups.stream().noneMatch(g -> g.id.equals(draft.groupId))) throw new IllegalArgumentException(text("请选择笔记所属分组"));
         Note value = new Note(draft);
         value.title = required(value.title);
-        if (value.filePath.isBlank()) throw new IllegalArgumentException("请绑定代码文件");
+        if (value.filePath.isBlank()) throw new IllegalArgumentException(text("请绑定代码文件"));
         Note old = data.notes.stream().filter(n -> n.id.equals(value.id)).findFirst().orElse(null);
         long now = System.currentTimeMillis();
         if (old == null) {
@@ -189,8 +190,8 @@ public final class Notebook {
     }
 
     private static String required(String text) {
-        if (text == null || text.isBlank()) throw new IllegalArgumentException("名称或标题不能为空");
-        if (text.strip().length() > 160) throw new IllegalArgumentException("名称或标题不能超过 160 个字符");
+        if (text == null || text.isBlank()) throw new IllegalArgumentException(text("名称或标题不能为空"));
+        if (text.strip().length() > 160) throw new IllegalArgumentException(text("名称或标题不能超过 160 个字符"));
         return text.strip();
     }
 

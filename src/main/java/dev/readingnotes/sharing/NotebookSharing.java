@@ -1,5 +1,6 @@
 package dev.readingnotes.sharing;
 
+import static dev.readingnotes.model.I18n.text;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
@@ -17,7 +18,7 @@ import java.util.*;
 public final class NotebookSharing {
     private final Project project;
     public NotebookSharing(Project project) { this.project = project; }
-    public Path root() { return Path.of(Objects.requireNonNull(project.getBasePath(), "项目尚无目录")); }
+    public Path root() { return Path.of(Objects.requireNonNull(project.getBasePath(), text("项目尚无目录"))); }
 
     /** Call on EDT before starting the background export/preview. */
     public Notebook.Data snapshot() {
@@ -40,7 +41,7 @@ public final class NotebookSharing {
         return new Prepared(plan, merged, backup);
     }
     public void commit(Prepared prepared) {
-        if (project.isDisposed()) throw new IllegalStateException("项目已经关闭");
+        if (project.isDisposed()) throw new IllegalStateException(text("项目已经关闭"));
         NoteAnchors anchors = NoteAnchors.get(project); anchors.flush();
         NotebookService store = NotebookService.get(project);
         store.book().compareAndLoad(prepared.plan.base, prepared.merged);
@@ -48,12 +49,12 @@ public final class NotebookSharing {
         store.changed(); project.save();
     }
     private String readSource(Path path) throws IOException {
-        if (Files.size(path) > 4 * 1024 * 1024) throw new IOException("源码文件超过 4 MB，请手动绑定该文件中的笔记");
+        if (Files.size(path) > 4 * 1024 * 1024) throw new IOException(text("源码文件超过 4 MB，请手动绑定该文件中的笔记"));
         VirtualFile file = LocalFileSystem.getInstance().findFileByNioFile(path);
         if (file == null) return Files.readString(path);
         String text = ApplicationManager.getApplication().isReadAccessAllowed() ? documentText(file)
             : ReadAction.nonBlocking(() -> documentText(file)).expireWith(project).executeSynchronously();
-        if (text == null) throw new IOException("目标不是可读取的文本文件");
+        if (text == null) throw new IOException(text("目标不是可读取的文本文件"));
         return text;
     }
     private static String documentText(VirtualFile file) {

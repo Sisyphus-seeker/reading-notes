@@ -4,7 +4,7 @@ English · [简体中文](README.zh-CN.md)
 
 Add notes to code lines and organize your understanding by **topic → group → note**. Click the bookmark icon beside a line number to view or edit its notes, without changing your source files.
 
-Reading Notes is an independent, MIT-licensed plugin by **siseeker**, targeting **PyCharm 2025.3–2026.3 / IntelliJ Platform 253–263**. The plugin interface is currently in Simplified Chinese. See [validation records](docs/VALIDATION.md) for the exact builds checked.
+Reading Notes is an independent, MIT-licensed plugin by **siseeker**, targeting **PyCharm 2025.3–2026.3 / IntelliJ Platform 253–263**. The interface supports Simplified Chinese and English. See [validation records](docs/VALIDATION.md) for the exact builds checked.
 
 ## Features
 
@@ -16,6 +16,7 @@ Reading Notes is an independent, MIT-licensed plugin by **siseeker**, targeting 
 - Resizable note dialogs with remembered dimensions.
 - Adjustable tree/detail split, with vertical and horizontal layouts.
 - Automatic text wrapping and IDE light/dark colors.
+- Switch between Simplified Chinese and English without restarting the IDE.
 - Anchors that follow edits and IDE file moves/renames. Ambiguous or deleted locations can be explicitly rebound.
 - Local project storage; no plugin telemetry, cloud service or network dependency.
 
@@ -32,7 +33,9 @@ The public plugin ID is `io.github.sisyphusseeker.readingnotes`. Early local tes
 
 ## Quick start
 
-1. Place the caret on a code line and press **Ctrl+Alt+Shift+N**, or choose **新建行笔记** in the editor context menu.
+Use **中文 / EN** at the top of the notes panel and choose **English** or **简体中文**. Chinese is the initial default. The choice applies to open notes panels and newly opened dialogs, and is remembered across projects and IDE restarts. Existing note text, source code, topic/group names and bindings are preserved. New default topic/group names use the selected language. This setting changes Reading Notes; standard IDE and operating-system controls follow their own language settings.
+
+1. Place the caret on a code line and press **Ctrl+Alt+Shift+N**, or choose **New Line Note / 新建行笔记** in the editor context menu.
 2. Choose a topic and group, enter a title and note, then save. **Ctrl+Enter** saves from the body; Enter inserts a newline.
 3. Click the teal gutter bookmark to reopen a note. If the line has multiple notes, choose one from the list.
 4. Double-click a note in the tool window to jump to code. Press Enter on a selected note to edit it.
@@ -40,7 +43,7 @@ The public plugin ID is `io.github.sisyphusseeker.readingnotes`. Early local tes
 
 To use a separate, resizable window, select **Float** or **Window** in the tool window header menu. The edit dialog itself is also resizable.
 
-Shortcuts can be changed under **Settings → Keymap → 新建行笔记**. Editing the topic/group fields moves a note to that destination. Deleting a topic or group removes its notes after confirmation; there is no recycle bin in this version.
+Shortcuts can be changed under **Settings → Keymap → New Line Note / 新建行笔记**. Editing the topic/group fields moves a note to that destination. Deleting a topic or group removes its notes after confirmation; there is no recycle bin in this version.
 
 ## Preview
 
@@ -60,6 +63,8 @@ Version 0.2.0 exports all notes or a selected topic, group or note to a portable
 
 Notes are stored in **`.idea/reading-notes.xml`** in each project. Paths inside the project are relative; external files use absolute file URLs. Back up this XML after saving the project. For a manual restore, close the project before replacing it.
 
+The UI language preference is stored separately in the IDE configuration's `options/reading-notes-settings.xml`. It is excluded from project notebooks and sharing files.
+
 The plugin uses editor range markers for open files, file pointers for IDE renames/moves, and saved source context when reopening or navigating to a closed file. Deleted or ambiguous locations are marked as needing confirmation; use **绑定到当前行** to bind a note to the caret's current line.
 
 Large source rewrites, renames outside the IDE, and branch changes can require manual rebinding. Existing notes from other plugins are not imported. `.idea` is often ignored by Git; sharing the notes file and resolving its conflicts is an explicit project choice.
@@ -74,7 +79,7 @@ The supplied build uses the **JBR 21 compiler bundled with a local PyCharm 2025.
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -IdeHome 'C:\Path\To\PyCharm'
 ```
 
-Alternatively, set `PYCHARM_HOME`. The build runs the model tests and writes `dist/ReadingNotes-0.2.0.zip`. Continue compiling against Platform 253 / Java 21 to preserve support for 2025.3; testing a newer IDE does not require raising this compilation baseline. Build outputs, local IDE state and downloaded verification tools are ignored by Git.
+Alternatively, set `PYCHARM_HOME`. The build runs the model tests and writes `dist/ReadingNotes-0.3.0.zip`. Continue compiling against Platform 253 / Java 21 to preserve support for 2025.3; testing a newer IDE does not require raising this compilation baseline. Build outputs, local IDE state and downloaded verification tools are ignored by Git.
 
 The current build and sandbox scripts are Windows-specific. The plugin uses platform APIs, but macOS/Linux runtime behavior has not been validated.
 

@@ -1,5 +1,6 @@
 package dev.readingnotes;
 
+import static dev.readingnotes.model.I18n.text;
 import com.google.gson.*;
 import dev.readingnotes.model.Notebook;
 import java.nio.charset.StandardCharsets;
@@ -18,8 +19,8 @@ public final class NotebookStorage {
         if (state.utf8Payload == null || state.utf8Payload.isEmpty()) return state;
         try {
             Notebook.Data decoded = JSON.fromJson(new String(Base64.getDecoder().decode(state.utf8Payload), StandardCharsets.UTF_8), Notebook.Data.class);
-            if (decoded == null) throw new IllegalArgumentException("笔记存储为空");
+            if (decoded == null) throw new IllegalArgumentException(text("笔记存储为空"));
             Notebook checked = new Notebook(); checked.load(decoded); return checked.snapshot();
-        } catch (RuntimeException failure) { throw new IllegalArgumentException("笔记 UTF-8 存储字段损坏，请从备份恢复", failure); }
+        } catch (RuntimeException failure) { throw new IllegalArgumentException(text("笔记 UTF-8 存储字段损坏，请从备份恢复"), failure); }
     }
 }

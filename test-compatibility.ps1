@@ -47,9 +47,11 @@ foreach ($target in $TargetIdeHome) {
     & (Join-Path $root 'run-sandbox.ps1') -IdeHome $sdk -BuildIdeHome $BuildIdeHome -PluginZip $zip -SmokeTest
     Wait-TestResult $sandbox 'smoke-result.txt' 19
     Wait-TestResult $sandbox 'sharing-result.txt' 19
+    Wait-TestResult $sandbox 'language-result.txt' 19
     & (Join-Path $root 'run-sandbox.ps1') -IdeHome $sdk -BuildIdeHome $BuildIdeHome -PluginZip $zip -CheckRestart
     Wait-TestResult $sandbox 'restart-result.txt' 5
     Wait-TestResult $sandbox 'sharing-restart.txt' 1
+    Wait-TestResult $sandbox 'language-restart.txt' 1
     if ((Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash -ne $packageHash) { throw 'The release ZIP changed during testing.' }
 }
 Write-Host "PASS: all requested IDE targets checked against the same ZIP. SHA256: $($packageHash.ToLowerInvariant())"
