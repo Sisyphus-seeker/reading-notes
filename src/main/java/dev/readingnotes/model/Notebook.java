@@ -12,6 +12,8 @@ public final class Notebook {
         public boolean horizontal = false;
         public float split = 0.45f;
         public String lastGroupId = "";
+        /** Storage-only envelope; snapshots intentionally leave it empty. Legacy XML stays readable. */
+        public String utf8Payload = "";
     }
 
     public static final class Topic {
@@ -65,6 +67,22 @@ public final class Notebook {
     }
 
     public synchronized Data snapshot() { return copy(data); }
+
+    /** Import previews are optimistic transactions: never overwrite edits made after preview. */
+    public synchronized void compareAndLoad(Data expected, Data incoming) {
+        if (!signature(data).equals(signature(expected))) throw new IllegalStateException("笔记在预览后已变化，请重新匹配后再导入");
+        load(incoming);
+    }
+
+    private static List<Object> signature(Data value) {
+        List<Object> key = new ArrayList<>();
+        key.add(Arrays.asList(value.version, value.horizontal, value.split, value.lastGroupId));
+        for (Topic t : value.topics) key.add(Arrays.asList("topic", t.id, t.name));
+        for (Group g : value.groups) key.add(Arrays.asList("group", g.id, g.topicId, g.name));
+        for (Note n : value.notes) key.add(Arrays.asList("note", n.id, n.groupId, n.title, n.text, n.filePath, n.line,
+            n.context, n.before, n.after, n.detached, n.createdAt, n.updatedAt));
+        return key;
+    }
 
     public synchronized void load(Data incoming) {
         Objects.requireNonNull(incoming, "笔记数据不能为空");

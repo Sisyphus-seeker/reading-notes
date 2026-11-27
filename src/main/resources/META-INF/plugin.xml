@@ -1,7 +1,7 @@
 <idea-plugin url="https://github.com/Sisyphus-seeker/reading-notes">
     <id>io.github.sisyphusseeker.readingnotes</id>
     <name>Reading Notes</name>
-    <version>0.1.1</version>
+    <version>0.2.0</version>
     <vendor url="https://github.com/Sisyphus-seeker/reading-notes" email="olivia0v0666@gmail.com">siseeker</vendor>
     <description><![CDATA[
         <p>Add notes to code lines and organize them by learning topic and group.</p>
@@ -11,9 +11,9 @@
         <p>Open source under the MIT License. Source and issue tracker: <a href="https://github.com/Sisyphus-seeker/reading-notes">GitHub</a>.</p>
     ]]></description>
     <change-notes><![CDATA[
-        <p>0.1.1 — Compatibility update for IntelliJ Platform 263 (2026.3).</p>
-        <p>Retains support for PyCharm 2025.3 and the existing local notebook format.</p>
-        <p>兼容 2026.3 平台，保留对 PyCharm 2025.3 的支持和现有笔记数据格式。</p>
+        <p>0.2.0 — Share code-reading notes across project versions.</p>
+        <p>Export topics, groups or notes with nearby source context. Preview file mappings, relocated anchors and conflicts before merging an import. Existing notes are backed up locally before import.</p>
+        <p>新增笔记分享与导入导出：包含少量代码上下文、文件路径映射、代码位置预览、冲突处理及导入前备份。无法可靠定位的笔记保留为位置待确认。</p>
     ]]></change-notes>
     <idea-version since-build="253" until-build="263.*"/>
     <depends>com.intellij.modules.platform</depends>

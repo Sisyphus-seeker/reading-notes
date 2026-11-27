@@ -88,6 +88,9 @@ public final class NotesPanel extends JPanel implements Disposable {
             splitter.setOrientation(!splitter.getOrientation());
             store.book().layout(!splitter.getOrientation(), splitter.getProportion());
         }));
+        JButton sharing = button("分享笔记：导入 / 导出", AllIcons.Actions.MenuSaveall, () -> {});
+        sharing.addActionListener(e -> ShareActions.menu(project, sharing, selected()));
+        toolbar.add(sharing);
         top.add(toolbar, BorderLayout.SOUTH);
         area.add(top, BorderLayout.NORTH);
 
@@ -234,6 +237,7 @@ public final class NotesPanel extends JPanel implements Disposable {
             item(menu, "在当前行新建笔记", this::addNote); menu.addSeparator();
             item(menu, "重命名…", this::rename);
         }
+        item(menu, "导出所选项…", () -> ShareActions.export(project, tree, selected()));
         item(menu, "删除…", this::deleteSelection); menu.show(tree, event.getX(), event.getY());
     }
 

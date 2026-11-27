@@ -2,7 +2,7 @@ name: Model tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, codex/share-notes]
   pull_request:
   workflow_dispatch:
 

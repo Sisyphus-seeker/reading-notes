@@ -13,7 +13,7 @@ public final class NotebookTest {
         try { command.run(); } catch (IllegalArgumentException e) { rejected = true; }
         check(rejected, message);
     }
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Notebook book = new Notebook();
         Notebook.Data initial = book.snapshot();
         check(initial.topics.size() == 1 && initial.groups.size() == 1 && initial.notes.isEmpty(), "Default empty notebook");
@@ -58,5 +58,6 @@ public final class NotebookTest {
         check(AnchorResolver.resolve(List.of("a", "b"), 2, "deleted", "a", "b") == -1, "Deleted source needs explicit rebinding");
         check(AnchorResolver.resolve(List.of("a", "", "b"), 2, "", "a", "b") == 1, "Blank-line notes are supported");
         System.out.println("PASS: " + checks + " notebook and anchor checks");
+        ShareEngineTest.run();
     }
 }

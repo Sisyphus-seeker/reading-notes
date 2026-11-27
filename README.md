@@ -52,6 +52,10 @@ These are renders of the actual plugin components in an isolated IDE with synthe
 
 [Narrow sidebar preview](docs/previews/sidebar-narrow.png) · [Validation details](docs/VALIDATION.md)
 
+## Sharing notes
+
+Version 0.2.0 exports all notes or a selected topic, group or note to a portable JSON file. Imports preview path mappings, relocated code and conflicts before merging. Uncertain locations remain detached; local XML backups are created before import. See [sharing and recovery instructions](docs/SHARING.md).
+
 ## Storage and anchor behavior
 
 Notes are stored in **`.idea/reading-notes.xml`** in each project. Paths inside the project are relative; external files use absolute file URLs. Back up this XML after saving the project. For a manual restore, close the project before replacing it.
@@ -70,7 +74,7 @@ The supplied build uses the **JBR 21 compiler bundled with a local PyCharm 2025.
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -IdeHome 'C:\Path\To\PyCharm'
 ```
 
-Alternatively, set `PYCHARM_HOME`. The build runs the model tests and writes `dist/ReadingNotes-0.1.1.zip`. Continue compiling against Platform 253 / Java 21 to preserve support for 2025.3; testing a newer IDE does not require raising this compilation baseline. Build outputs, local IDE state and downloaded verification tools are ignored by Git.
+Alternatively, set `PYCHARM_HOME`. The build runs the model tests and writes `dist/ReadingNotes-0.2.0.zip`. Continue compiling against Platform 253 / Java 21 to preserve support for 2025.3; testing a newer IDE does not require raising this compilation baseline. Build outputs, local IDE state and downloaded verification tools are ignored by Git.
 
 The current build and sandbox scripts are Windows-specific. The plugin uses platform APIs, but macOS/Linux runtime behavior has not been validated.
 

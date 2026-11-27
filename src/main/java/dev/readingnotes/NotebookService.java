@@ -18,8 +18,8 @@ public final class NotebookService implements PersistentStateComponent<Notebook.
     public NotebookService(Project project) { this.project = project; }
     public static NotebookService get(Project project) { return project.getService(NotebookService.class); }
     public Notebook book() { return notebook; }
-    @Override public Notebook.Data getState() { return notebook.snapshot(); }
-    @Override public void loadState(@NotNull Notebook.Data state) { notebook.load(state); }
+    @Override public Notebook.Data getState() { return NotebookStorage.encode(notebook.snapshot()); }
+    @Override public void loadState(@NotNull Notebook.Data state) { notebook.load(NotebookStorage.decode(state)); }
     public void changed() { if (!project.isDisposed()) project.getMessageBus().syncPublisher(CHANGED).changed(); }
     @Override public void dispose() {}
 }

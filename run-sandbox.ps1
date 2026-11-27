@@ -45,6 +45,8 @@ foreach ($directory in @($plugin, $results, (Join-Path $sandbox 'config\options'
 }
 if ($SmokeTest -or $CheckRestart) {
     $resultName = if ($CheckRestart) { 'restart-result.txt' } else { 'smoke-result.txt' }
+    $sharingResult = Join-Path $results $(if ($CheckRestart) { 'sharing-restart.txt' } else { 'sharing-result.txt' })
+    if (Test-Path -LiteralPath $sharingResult) { Remove-Item -LiteralPath $sharingResult -Force }
     foreach ($fileName in @($resultName, 'smoke-failure.txt')) {
         $resultFile = Join-Path $results $fileName
         if (Test-Path -LiteralPath $resultFile) { Remove-Item -LiteralPath $resultFile -Force }
@@ -67,7 +69,8 @@ try {
 if ($SmokeTest -or $CheckRestart) {
     $smokeClasses = Join-Path $sandbox 'smoke-classes'
     New-Item -ItemType Directory -Path $smokeClasses -Force | Out-Null
-    & (Join-Path $compilerSdk 'jbr\bin\javac.exe') '-J-Duser.language=en' -encoding UTF-8 --release 21 -proc:none -classpath "$jar;$compilerSdk\lib\*" -d $smokeClasses (Join-Path $root 'src\ideTest\java\dev\readingnotes\IdeSmokeActivity.java')
+    $ideTestSources = @(Get-ChildItem -LiteralPath (Join-Path $root 'src\ideTest\java') -File -Recurse -Filter '*.java' | ForEach-Object { $_.FullName })
+    & (Join-Path $compilerSdk 'jbr\bin\javac.exe') '-J-Duser.language=en' -encoding UTF-8 --release 21 -proc:none -classpath "$jar;$compilerSdk\lib\*" -d $smokeClasses @ideTestSources
     if ($LASTEXITCODE -ne 0) { throw 'IDE smoke test compilation failed.' }
     $sourceArchive = [IO.Compression.ZipFile]::OpenRead($jar)
     try {

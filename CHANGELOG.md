@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0 — 2026-11-27
+
+- Share selected topics, groups or individual notes as local JSON with portable paths and up to seven lines of source context.
+- Preview path mappings, conservative source relocation, duplicate detection and explicit conflict choices before importing.
+- Back up existing notes in restorable IDE XML before merging, and reject stale previews.
+- Preserve supplementary Unicode characters in saved notebooks and backups using an optional UTF-8 envelope; legacy notebooks remain readable.
+- Add cross-project sharing tests and narrow/wide import-dialog rendering checks.
+
 ## 0.1.1 — 2026-11-18
 
 - Extend the declared compatibility range to IntelliJ Platform 263 (PyCharm 2026.3), retaining the Platform 253 / Java 21 compilation baseline.

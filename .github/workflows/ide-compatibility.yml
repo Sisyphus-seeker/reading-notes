@@ -2,7 +2,7 @@ name: IDE binary compatibility
 
 on:
   push:
-    branches: [codex/compat-263]
+    branches: [codex/compat-263, codex/share-notes]
   pull_request:
     paths:
       - 'src/**'

@@ -1,6 +1,6 @@
 # Marketplace submission materials
 
-The existing listing is [Reading Notes](https://plugins.jetbrains.com/plugin/36128-reading-notes). This file provides materials for the 0.1.1 compatibility update. A candidate package or GitHub commit does not mean the update has been submitted to or approved by Marketplace.
+The existing listing is [Reading Notes](https://plugins.jetbrains.com/plugin/36128-reading-notes). This file provides materials for the 0.2.0 compatibility update. A candidate package or GitHub commit does not mean the update has been submitted to or approved by Marketplace.
 
 ## Listing fields
 
@@ -8,7 +8,7 @@ The existing listing is [Reading Notes](https://plugins.jetbrains.com/plugin/361
 | --- | --- |
 | Name | Reading Notes |
 | Plugin ID | `io.github.sisyphusseeker.readingnotes` |
-| Version | `0.1.1` |
+| Version | `0.2.0` |
 | Vendor | siseeker |
 | Contact email | olivia0v0666@gmail.com |
 | Vendor website / project home | https://github.com/Sisyphus-seeker/reading-notes |
@@ -32,7 +32,7 @@ The note dialog can be resized, and the tool window can switch between stacked a
 
 Notes are stored locally in `.idea/reading-notes.xml`. The plugin does not upload notes or source code, collect telemetry, or require cloud accounts. The plugin interface is currently in Simplified Chinese.
 
-Open source under the MIT License. Version 0.1.1 targets IntelliJ Platform 253 through 263 (PyCharm 2025.3–2026.3). It does not import other plugins' notebooks, include a recycle bin, or provide cloud sync. See the repository's validation records for the exact tested builds.
+Open source under the MIT License. Version 0.2.0 targets IntelliJ Platform 253 through 263 (PyCharm 2025.3–2026.3). It does not import other plugins' notebooks, include a recycle bin, or provide cloud sync. See the repository's validation records for the exact tested builds.
 
 ## 中文介绍
 
@@ -53,11 +53,11 @@ The previews render actual plugin components with synthetic notes. They should b
 
 1. Log in to JetBrains Marketplace with your own account.
 2. Open the existing Reading Notes listing in your vendor dashboard and choose its version/update upload action.
-3. Upload `ReadingNotes-0.1.1.zip` and the change notes below. Keep the existing plugin ID and vendor.
+3. Upload `ReadingNotes-0.2.0.zip` and the change notes below. Keep the existing plugin ID and vendor.
 4. Complete any new account declarations or agreements personally if Marketplace requests them.
 5. Monitor review status; technical questions and compatibility findings can be addressed in the source project.
 
-Do not upload the sandbox's instrumented test JAR. Use only the verified `dist/ReadingNotes-0.1.1.zip` or its matching GitHub Release asset after release.
+Do not upload the sandbox's instrumented test JAR. Use only the verified `dist/ReadingNotes-0.2.0.zip` or its matching GitHub Release asset after release.
 
 ## Update notes
 

@@ -141,19 +141,20 @@ public final class IdeSmokeActivity implements StartupActivity.DumbAware {
             project.save();
             Files.write(results.resolve("smoke-result.txt"), passed);
             NotesUi.reveal(project, noteId, true);
-            later(this::exit);
+            SharingIdeChecks.run(project, results, () -> later(this::exit));
         });
     }
 
     private void checkRestart() throws Exception {
         Notebook.Data data = NotebookService.get(project).book().snapshot();
-        check(data.notes.size() == 2, "Notes restored after IDE restart");
+        check(data.notes.size() == 3, "Notes restored after IDE restart");
         check(data.notes.stream().anyMatch(n -> n.title.equals("检查访问令牌") && n.text.contains("中文笔记")), "Chinese multiline content restored after IDE restart");
         check(data.topics.stream().anyMatch(t -> t.name.equals("登录流程")) && data.groups.stream().anyMatch(g -> g.name.equals("身份校验")), "Topics/groups restored after IDE restart");
         check(data.horizontal && Math.abs(data.split - .38f) < .01f, "Layout and split proportion restored after IDE restart");
         Notebook.Note attached = data.notes.stream().filter(n -> !n.detached).findFirst().orElseThrow();
         check(!NoteAnchors.get(project).resolveLocation(attached.id).detached, "Saved source anchor restored after IDE restart");
         Files.write(results.resolve("restart-result.txt"), passed);
+        SharingIdeChecks.checkRestart(project, results);
         exit();
     }
 

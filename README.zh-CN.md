@@ -60,6 +60,10 @@
 
 定位依赖代码文本及上下文。文件关闭期间发生的大规模重写、IDE 之外的文件重命名、分支切换造成的结构变化，可能需要手动重新绑定。
 
+## 分享笔记与导入
+
+0.2.0 支持全部或按主题、分组、单条笔记导出 JSON；携带绑定行与前后各 3 行代码。接收方导入时可预览定位结果、映射改名文件或目录、确认候选行，并处理重复与冲突。无法确定的位置保留为待绑定，导入前自动生成本地 XML 备份。详见[分享与恢复说明](docs/SHARING.md)。
+
 ## 数据保存
 
 - 每个项目的笔记保存在 **`.idea/reading-notes.xml`**，代码文件本身不写入任何注释。
@@ -78,7 +82,7 @@
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -IdeHome 'C:\Path\To\PyCharm'
 ```
 
-也可设置 `PYCHARM_HOME` 后省略 `-IdeHome`。脚本会运行模型测试并生成 `dist/ReadingNotes-0.1.1.zip`。编译 SDK 保持为 2025.3；测试新版 IDE 不需要升级日常开发环境。
+也可设置 `PYCHARM_HOME` 后省略 `-IdeHome`。脚本会运行模型测试并生成 `dist/ReadingNotes-0.2.0.zip`。编译 SDK 保持为 2025.3；测试新版 IDE 不需要升级日常开发环境。
 
 构建脚本只清理本工程 `build` 目录内的指定输出目录。JAR 和 ZIP 中的文件路径统一使用 `/`，兼容 IDE 的插件加载器。
 
