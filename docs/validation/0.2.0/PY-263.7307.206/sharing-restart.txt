@@ -1,0 +1,1 @@
+PASS Imported Unicode note, stable ID and relocated binding survive IDE restart

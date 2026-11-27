@@ -1,0 +1,2 @@
+IDE: PY-262.8665.309
+PASS all JAR entry payloads match local 0.2.0 byte-for-byte.

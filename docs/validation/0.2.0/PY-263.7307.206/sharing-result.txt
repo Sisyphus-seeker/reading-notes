@@ -1,0 +1,19 @@
+PASS Share JSON preserves Unicode, multiline notes and seven-line anchors
+PASS Share JSON excludes this computer's absolute project path
+PASS Unknown share format versions are rejected
+PASS Excessive JSON nesting is rejected
+PASS Malformed JSON is rejected before touching notes
+PASS Unsafe export validation preserves an existing destination file
+PASS Failed export leaves the prior valid share intact
+PASS IDE import relocates a shared note in a renamed and edited file
+PASS Import backup contains the complete pre-import notebook in IDE XML format
+PASS Import commit preserves stable IDs and confirmed source binding
+PASS Repeated IDE import skips the already imported note
+PASS Pre-import backup exists on disk
+PASS XML backups preserve supplementary Unicode through the UTF-8 envelope
+PASS Import preview calculates a plan asynchronously
+PASS Import preview is resizable and remembers dimensions
+PASS Import preview renders note, source and conflict controls
+PASS Import controls have accessible labels and a confirmation action
+PASS Confirm commits pending path edits and requires a fresh preview
+PASS Dirty path mapping does not write an obsolete import plan

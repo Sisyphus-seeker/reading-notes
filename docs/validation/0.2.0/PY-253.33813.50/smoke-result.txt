@@ -1,0 +1,19 @@
+PASS Sandbox source exists
+PASS Editor opened
+PASS Two notes on one line use one gutter icon
+PASS Gutter icon has a click action
+PASS Anchor follows line insertion
+PASS Anchor follows line removal
+PASS Anchor still refers to original source
+PASS IDE XML serializer preserves Chinese multiline notes
+PASS IDE XML serializer preserves topic/group structure
+PASS Anchor follows file rename
+PASS Tool window registered
+PASS Rendered narrow/wide layouts without exception
+PASS Note dialog is resizable
+PASS Dialog remembers its dimensions
+PASS Ctrl+Enter uses the validated dialog save action
+PASS Deleting anchored source marks note detached
+PASS Explicit rebinding restores gutter icon
+PASS Closed source fixture exists
+PASS Closed-file navigation resolves externally shifted code
