@@ -1,0 +1,19 @@
+PASS Existing installations default to Chinese
+PASS Language selector is visible and keyboard focusable
+PASS Language menu exposes both native language names and current selection
+PASS English menu action changes the application preference
+PASS Open panels refresh translated accessible names immediately
+PASS Language change preserves search text and note selection
+PASS Toolbar tooltips switch to English
+PASS UI language changes preserve Chinese content and code anchors
+PASS Gutter labels and tooltips follow English
+PASS Editor action and searchable template switch to English
+PASS Share menu offers English import and export actions
+PASS Note editor title and save action follow English
+PASS Switching back restores Chinese panel labels
+PASS Repeated switching does not duplicate tree listeners
+PASS English import preview completes background matching
+PASS Import dialog title and confirmation follow English
+PASS Import table headers and accessible names follow English
+PASS Import matching explanations and location status follow English
+PASS English main, note and import views render at narrow and wide sizes

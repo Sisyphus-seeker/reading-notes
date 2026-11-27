@@ -1,0 +1,6 @@
+Source commit: 895891e6f1327bb6de2aac8af708d51b55be691b
+Local ZIP SHA256: 907f757fc6d57fdf3b70b71f4c7d9f343665e22f48e3ae52c983d9c4fc41aa0e
+compatibility-2025.3.6.1: all JAR entry payloads byte-identical to local package
+compatibility-2026.1: all JAR entry payloads byte-identical to local package
+compatibility-2026.2: all JAR entry payloads byte-identical to local package
+compatibility-2026.3: all JAR entry payloads byte-identical to local package

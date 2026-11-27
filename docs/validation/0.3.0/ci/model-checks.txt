@@ -1,0 +1,6 @@
+Java 21 model checks (ubuntu-latest)	Compile and run model checks	2026-11-27T08:34:15.6308788Z PASS: 24 notebook and anchor checks
+Java 21 model checks (ubuntu-latest)	Compile and run model checks	2026-11-27T08:34:15.7022271Z PASS: 41 sharing, relocation and merge checks
+Java 21 model checks (ubuntu-latest)	Compile and run model checks	2026-11-27T08:34:15.7289935Z PASS: 14 localization checks
+Java 21 model checks (windows-latest)	Compile and run model checks	2026-11-27T08:34:33.1440013Z PASS: 24 notebook and anchor checks
+Java 21 model checks (windows-latest)	Compile and run model checks	2026-11-27T08:34:33.5177862Z PASS: 41 sharing, relocation and merge checks
+Java 21 model checks (windows-latest)	Compile and run model checks	2026-11-27T08:34:33.5596027Z PASS: 14 localization checks

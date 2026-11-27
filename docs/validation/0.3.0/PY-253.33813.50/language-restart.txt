@@ -1,0 +1,1 @@
+PASS English application preference and translated panel survive IDE restart
