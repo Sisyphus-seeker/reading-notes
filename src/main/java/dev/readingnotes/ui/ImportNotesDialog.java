@@ -80,7 +80,7 @@ public final class ImportNotesDialog extends DialogWrapper {
             }
         };
         setTitle("导入分享笔记"); setOKButtonText("确认合并导入"); setCancelButtonText("取消"); setResizable(true);
-        init(); getWindow().setMinimumSize(JBUI.size(640, 500)); setOKActionEnabled(false);
+        init(); getWindow().setMinimumSize(JBUI.size(720, 600)); setOKActionEnabled(false);
         root.getDocument().addDocumentListener(new DocumentListener() {
             @Override public void insertUpdate(DocumentEvent e) { dirty(); }
             @Override public void removeUpdate(DocumentEvent e) { dirty(); }
@@ -113,7 +113,9 @@ public final class ImportNotesDialog extends DialogWrapper {
         configure(notes, "待导入笔记及定位、冲突处理"); configure(paths, "文件路径映射");
         JTabbedPane tabs = new JTabbedPane();
         JPanel review = new JPanel(new BorderLayout(0, 8));
-        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JBScrollPane(notes), preview()); split.setResizeWeight(.42);
+        JBScrollPane noteScroll = new JBScrollPane(notes); noteScroll.setMinimumSize(JBUI.size(120, 90));
+        JComponent sourcePreview = preview(); sourcePreview.setMinimumSize(JBUI.size(120, 170));
+        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, noteScroll, sourcePreview); split.setResizeWeight(.42);
         review.add(split, BorderLayout.CENTER);
         JBTextArea hint = area(); hint.setText("点击“导入处理”选择合并方式；位置待确认的笔记也会保留。导入前自动备份。"); hint.setRows(2); hint.setOpaque(false);
         review.add(hint, BorderLayout.SOUTH); tabs.addTab("笔记预览", review);

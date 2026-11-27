@@ -77,7 +77,7 @@ public final class SharingIdeChecks {
                 check(dialog.currentPlan() != null, "Import preview calculates a plan asynchronously");
                 check(dialog.isResizable() && dialog.getDimensionKey().equals("ReadingNotes.ImportDialog.v1"), "Import preview is resizable and remembers dimensions");
                 render((JComponent) dialog.getContentPane(), 960, 700, results.resolve("import-preview.png"));
-                render((JComponent) dialog.getContentPane(), 640, 500, results.resolve("import-preview-narrow.png"));
+                render((JComponent) dialog.getContentPane(), 720, 600, results.resolve("import-preview-narrow.png"));
                 check(true, "Import preview renders note, source and conflict controls");
                 JTable noteTable = table((Container) dialog.getContentPane(), "待导入笔记及定位、冲突处理");
                 JTable pathTable = table((Container) dialog.getContentPane(), "文件路径映射");

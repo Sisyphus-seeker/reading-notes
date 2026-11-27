@@ -1,6 +1,6 @@
 # Marketplace submission materials
 
-The existing listing is [Reading Notes](https://plugins.jetbrains.com/plugin/36128-reading-notes). This file provides materials for the 0.2.0 compatibility update. A candidate package or GitHub commit does not mean the update has been submitted to or approved by Marketplace.
+The existing listing is [Reading Notes](https://plugins.jetbrains.com/plugin/36128-reading-notes). This file provides materials for the 0.2.0 note-sharing update. A candidate package or GitHub commit does not mean the update has been submitted to or approved by Marketplace.
 
 ## Listing fields
 
@@ -61,8 +61,8 @@ Do not upload the sandbox's instrumented test JAR. Use only the verified `dist/R
 
 ## Update notes
 
-Compatibility update for IntelliJ Platform 263 (PyCharm 2026.3). Retains support for PyCharm 2025.3 and preserves the existing local notebook format. No note migration is required.
+Share topics, groups and notes as JSON with nearby source context. Preview path mappings, relocated code and conflicts before merging imports. Local backups are created before import. Fixes supplementary Unicode persistence. Supports PyCharm 2025.3–2026.3.
 
-兼容 PyCharm 2026.3，保留 2025.3 支持；沿用现有本地笔记格式，无需迁移笔记。
+新增笔记 JSON 分享、路径映射、代码重定位预览、重复与冲突处理及导入前备份；修复表情字符的保存恢复，保留 2025.3–2026.3 支持。
 
 Official references: [uploading a plugin](https://plugins.jetbrains.com/docs/marketplace/uploading-a-new-plugin.html), [approval guidelines](https://plugins.jetbrains.com/docs/marketplace/jetbrains-marketplace-approval-guidelines.html), [plugin logo](https://plugins.jetbrains.com/docs/intellij/plugin-icon-file.html).
